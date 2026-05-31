@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Omar's HSK Hub - منصة تعلم الصينية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600;700&family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.3/dist/hanzi-writer.min.js"></script>
+    <style>
+        :root {
+            --primary-red: #DE2910;
+            --accent-gold: #FFDE00;
+            --bg-color: #F5F7FA;
+            --card-bg: #FFFFFF;
+            --text-dark: #2C3E50;
+            --text-grey: #95A5A6;
+            --hsk1: #27ae60;
+            --hsk2: #2980b9;
+            --hsk3: #f39c12;
+            --hsk4: #e67e22;
+            --hsk5: #c0392b;
+            --hsk6: #8e44ad;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Noto Sans Arabic', sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-dark); display: flex; height: 100vh; overflow: hidden; }
+        
+        /* Login Screen */
+        .login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, var(--primary-red) 0%, #8B0000 100%); display: flex; justify-content: center; align-items: center; z-index: 10000; }
+        .login-box { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); width: 90%; max-width: 400px; text-align: center; }
+        .login-box h1 { color: var(--primary-red); margin-bottom: 10px; }
+        .login-input { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem; }
+        .login-input:focus { outline: none; border-color: var(--primary-red); }
+        
+        /* Sidebar */
+        .sidebar { width: 260px; background: white; border-left: 1px solid #eee; display: flex; flex-direction: column; padding: 20px; z-index: 100; box-shadow: 2px 0 10px rgba(0,0,0,0.05); }
+        .brand { display: flex; align-items: center; gap: 15px; margin-bottom: 30px; }
+        .brand-icon { width: 45px; height: 45px; background: var(--primary-red); color: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; font-family: 'Noto Sans SC'; }
+        .brand-text h1 { font-size: 1.1rem; }
+        .brand-text p { font-size: 0.75rem; color: var(--text-grey); }
+        .nav-menu { list-style: none; flex: 1; }
+        .nav-item { padding: 12px; margin-bottom: 5px; border-radius: 8px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 10px; color: var(--text-grey); font-weight: 600; }
+        .nav-item:hover, .nav-item.active { background-color: #fff0f0; color: var(--primary-red); }
+        .levels-list { margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px; }
+        .level-item { display: flex; justify-content: space-between; padding: 8px; cursor: pointer; border-radius: 6px; font-size: 0.9rem; }
+        .level-item:hover { background: #f9f9f9; }
+        
+        /* Main Content */
+        .main-content { flex: 1; padding: 25px; overflow-y: auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .user-info { display: flex; align-items: center; gap: 15px; background: white; padding: 8px 15px; border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .logout-btn { background: var(--primary-red); color: white; border: none; padding: 6px 12px; border-radius: 15px; cursor: pointer; font-size: 0.8rem; }
+        
+        /* Views */
+        .view-section { display: none; animation: fadeIn 0.3s ease; }
+        .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Hero */
+        .hero-container { text-align: center; padding-top: 40px; position: relative; }
+        .bg-char { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 12rem; color: rgba(0,0,0,0.03); font-family: 'Noto Sans SC'; z-index: -1; pointer-events: none; }
+        .hero-title { font-size: 2.2rem; margin-bottom: 15px; }
+        .hero-title span { color: var(--primary-red); }
+        .hero-desc { color: var(--text-grey); max-width: 550px; margin: 0 auto 25px; line-height: 1.5; }
+        
+        /* Buttons */
+        .btn { padding: 10px 25px; border: none; border-radius: 8px; font-size: 0.95rem; cursor: pointer; transition: 0.2s; font-weight: bold; }
+        .btn-primary { background: var(--primary-red); color: white; }
+        .btn-primary:hover { background: #b01d08; }
+        .btn-outline { border: 2px solid #ddd; background: transparent; color: var(--text-dark); margin-right: 10px; }
+        .btn-outline:hover { border-color: var(--primary-red); color: var(--primary-red); }
+        .btn-outline.active, .btn-outline.active-state { background: var(--primary-red); color: white; border-color: var(--primary-red); }
+        
+        /* Stats */
+        .stats-overview { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: center; }
+        .stat-number { font-size: 1.8rem; font-weight: bold; color: var(--primary-red); }
+        
+        /* HSK Cards */
+        .levels-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
+        .hsk-card { background: white; padding: 18px; border-radius: 12px; box-shadow: 0 3px 10px rgba(0,0,0,0.05); transition: transform 0.2s; }
+        .hsk-card:hover { transform: translateY(-3px); }
+        .hsk-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .hsk-level-badge { width: 35px; height: 35px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-family: 'Noto Sans SC'; }
+        .progress-bar-bg { height: 6px; background: #eee; border-radius: 3px; margin-top: 8px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; border-radius: 3px; width: 0%; transition: width 0.8s ease; }
+        
+        /* Vocab Cards */
+        .vocab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; }
+        .vocab-card { background: white; padding: 15px; border-radius: 10px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.05); border: 1px solid transparent; transition: 0.2s; }
+        .vocab-card:hover { border-color: var(--primary-red); }
+        .char-display { font-family: 'Noto Sans SC'; font-size: 2.4rem; margin-bottom: 4px; }
+        .pinyin-display { color: var(--primary-red); font-weight: bold; margin-bottom: 4px; font-size: 0.9rem; }
+        .arabic-meaning { color: var(--text-grey); font-size: 0.85rem; margin-bottom: 12px; min-height: 20px; }
+        .card-actions { display: flex; justify-content: center; gap: 12px; border-top: 1px solid #eee; padding-top: 8px; }
+        .action-btn { cursor: pointer; color: #ccc; font-size: 1.1rem; transition: 0.2s; }
+        .action-btn:hover { color: var(--primary-red); }
+        
+        /* Admin Table */
+        .admin-table { width: 100%; background: white; border-collapse: collapse; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .admin-table th, .admin-table td { padding: 12px; text-align: right; border-bottom: 1px solid #eee; font-size: 0.9rem; }
+        .admin-table th { background: #f8f9fa; }
+        .status-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; margin-left: 5px; }
+        .dot-green { background: #2ecc71; }
+        .dot-red { background: #e74c3c; }
+        
+        /* Modals */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; display: none; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 25px; border-radius: 12px; text-align: center; width: 90%; max-width: 450px; max-height: 90vh; overflow-y: auto; }
+        #writer-target { width: 280px; height: 280px; margin: 15px auto; border: 1px solid #ddd; }
+        
+        /* Quiz */
+        .quiz-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 900; display: none; padding: 30px; overflow-y: auto; }
+        .quiz-container { max-width: 700px; margin: 0 auto; text-align: center; position: relative; }
+        .quiz-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .quiz-question { font-family: 'Noto Sans SC'; font-size: 4rem; margin-bottom: 8px; min-height: 80px; }
+        .quiz-pinyin { font-size: 1.3rem; color: var(--primary-red); margin-bottom: 20px; min-height: 25px; }
+        .quiz-options { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .quiz-option { background: white; padding: 18px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; box-shadow: 0 2px 4px rgba(0,0,0,0.05); font-size: 1.1rem; transition: 0.2s; }
+        .quiz-option:hover { border-color: var(--primary-red); }
+        .quiz-option.correct { background: #d4edda; border-color: #28a745; color: #155724; }
+        .quiz-option.wrong { background: #f8d7da; border-color: #dc3545; color: #721c24; }
+        .timer-display { position: absolute; top: -10px; left: -10px; background: white; padding: 8px 12px; border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); font-weight: bold; color: var(--primary-red); }
+        
+        /* Settings */
+        .settings-group { margin-bottom: 15px; text-align: right; }
+        .settings-group label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9rem; }
+        .settings-options { display: flex; gap: 8px; flex-wrap: wrap; }
+        .settings-options .btn { flex: 1; min-width: 80px; font-size: 0.85rem; padding: 8px; }
+        
+        /* Result */
+        .result-screen { display: none; text-align: center; padding: 20px; }
+        .result-score { font-size: 3rem; font-weight: bold; color: var(--primary-red); margin: 10px 0; }
+        
+        /* Search */
+        .search-box { width: 100%; max-width: 400px; padding: 10px 15px; border: 2px solid #ddd; border-radius: 20px; font-size: 0.95rem; }
+        .search-box:focus { outline: none; border-color: var(--primary-red); }
+        
+        .hidden { display: none !important; }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar { width: 60px; padding: 10px; }
+            .brand-text, .nav-item span, .levels-list { display: none; }
+            .brand-icon { width: 35px; height: 35px; font-size: 1.2rem; }
+            .levels-grid { grid-template-columns: 1fr; }
+            .quiz-options { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== LOGIN SCREEN ==================== -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-box">
+            <div style="font-family:'Noto Sans SC'; font-size:3rem; color:var(--primary-red); margin-bottom:15px;">学</div>
+            <h1>Omar's HSK Hub</h1>
+            <p style="color:#666; margin-bottom:25px;">منصة تعلم الصينية - HSK 3.0</p>
+            <input type="text" id="usernameInput" class="login-input" placeholder="اسم المستخدم">
+            <input type="password" id="passwordInput" class="login-input" placeholder="كلمة المرور">
+            <button class="btn btn-primary" style="width:100%; margin-top:15px;" onclick="login()">تسجيل الدخول</button>
+            <p id="loginError" style="color:red; margin-top:12px; display:none; font-size:0.9rem;">بيانات الدخول غير صحيحة</p>
+            <p style="color:#999; margin-top:20px; font-size:0.8rem;">Admin: omar / omar17 | User: user / 123</p>
+        </div>
+    </div>
+
+    <!-- ==================== MAIN APP ==================== -->
+    <div id="mainApp" class="hidden" style="display:flex; height:100vh;">
+        
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">学</div>
+                <div class="brand-text"><h1>Omar's HSK Hub</h1><p>منصة تعلم الصينية</p></div>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item active" onclick="switchView('home')">🏠 الرئيسية</li>
+                <li class="nav-item" onclick="switchView('dashboard')"> المستويات</li>
+                <li class="nav-item" onclick="switchView('leaderboard')">🏆 قاعة الشرف</li>
+                <li class="nav-item" id="adminNav" onclick="switchView('admin')" style="display:none;">🔒 الإدارة</li>
+            </ul>
+            <div class="levels-list">
+                <p style="font-size:0.75rem; color:#999; margin-bottom:8px;">المستويات</p>
+                <div class="level-item" onclick="loadVocab(1)"><span>HSK 1</span> <span style="color:var(--hsk1); font-weight:bold;">一</span></div>
+                <div class="level-item" onclick="loadVocab(2)"><span>HSK 2</span> <span style="color:var(--hsk2); font-weight:bold;">二</span></div>
+                <div class="level-item" onclick="loadVocab(3)"><span>HSK 3</span> <span style="color:var(--hsk3); font-weight:bold;">三</span></div>
+                <div class="level-item" onclick="loadVocab(4)"><span>HSK 4</span> <span style="color:var(--hsk4); font-weight:bold;">四</span></div>
+                <div class="level-item" onclick="loadVocab(5)"><span>HSK 5</span> <span style="color:var(--hsk5); font-weight:bold;">五</span></div>
+                <div class="level-item" onclick="loadVocab(6)"><span>HSK 6</span> <span style="color:var(--hsk6); font-weight:bold;">六</span></div>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="header">
+                <h2 id="pageTitle">الرئيسية</h2>
+                <div class="user-info">
+                    <span id="userNameDisplay">مستخدم</span>
+                    <button class="logout-btn" onclick="logout()">خروج</button>
+                </div>
+            </header>
+
+            <!-- HOME VIEW -->
+            <section id="home" class="view-section active">
+                <div class="hero-container">
+                    <div class="bg-char">学习</div>
+                    <h1 class="hero-title">مرحباً بك في <br><span>Omar's HSK Hub</span></h1>
+                    <p class="hero-desc">تعلم أكثر من 9,750 كلمة صينية عبر 6 مستويات HSK 3.0 مع نطق صوتي، اختبارات تفاعلية متقدمة، وتتبع دقيق للتقدم.</p>
+                    <button class="btn btn-primary" onclick="switchView('dashboard')">ابدأ التعلم الآن</button>
+                    <button class="btn btn-outline" onclick="openQuizSettings()">اختبار متقدم</button>
+                </div>
+            </section>
+
+            <!-- DASHBOARD VIEW -->
+            <section id="dashboard" class="view-section">
+                <div class="stats-overview">
+                    <div class="stat-card"><div class="stat-number">9,750</div><div>إجمالي الكلمات</div></div>
+                    <div class="stat-card"><div class="stat-number" id="learnedCount">0</div><div>تم تعلمها</div></div>
+                    <div class="stat-card"><div class="stat-number" id="progressPercent">0%</div><div>نسبة الإنجاز</div></div>
+                </div>
+                <div class="levels-grid" id="levelsContainer"></div>
+            </section>
+
+            <!-- VOCAB VIEW -->
+            <section id="vocab" class="view-section">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+                    <h2 id="vocabLevelTitle">مفردات HSK 1</h2>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <input type="text" class="login-input" id="vocabSearch" placeholder="ابحث بالعربية أو拼音 أو Hanzi..." style="margin:0; width:250px; padding:8px;">
+                        <button class="btn btn-outline" onclick="switchView('dashboard')">عودة</button>
+                    </div>
+                </div>
+                <div class="vocab-grid" id="vocabContainer"></div>
+            </section>
+
+            <!-- ADMIN VIEW -->
+            <section id="admin" class="view-section">
+                <h2>لوحة تحكم المسؤول</h2>
+                <p style="color:#666; margin-bottom:15px; font-size:0.9rem;">مراقبة المستخدمين والنشاطات الحية</p>
+                <table class="admin-table">
+                    <thead><tr><th>المستخدم</th><th>الحالة</th><th>النشاط الحالي</th><th>آخر دخول</th><th>الإجراء</th></tr></thead>
+                    <tbody id="adminTableBody">
+                        <tr><td>أحمد محمد</td><td><span class="status-dot dot-green"></span> متصل</td><td>يدرس HSK 2</td><td>الآن</td><td><button class="btn btn-outline" style="padding:4px 8px; font-size:0.75rem;">حظر</button></td></tr>
+                        <tr><td>سارة علي</td><td><span class="status-dot dot-red"></span> غير متصل</td><td>آخر دخول: منذ ساعة</td><td>منذ ساعة</td><td><button class="btn btn-outline" style="padding:4px 8px; font-size:0.75rem;">تفعيل</button></td></tr>
+                        <tr><td>خالد حسن</td><td><span class="status-dot dot-green"></span> متصل</td><td>يأخذ اختبار HSK 3</td><td>الآن</td><td><button class="btn btn-outline" style="padding:4px 8px; font-size:0.75rem;">حظر</button></td></tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- LEADERBOARD VIEW -->
+            <section id="leaderboard" class="view-section">
+                <h2>قاعة الشرف 🏆</h2>
+                <div style="background:white; padding:15px; border-radius:10px; margin-top:15px;">
+                    <div style="display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid #eee;"><span> #1 Omar (Admin)</span><span style="font-weight:bold; color:var(--primary-red)">9,750 نقطة</span></div>
+                    <div style="display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid #eee;"><span>🥈 #2 أحمد محمد</span><span>450 نقطة</span></div>
+                    <div style="display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid #eee;"><span>🥉 #3 سارة علي</span><span>320 نقطة</span></div>
+                    <div style="display:flex; justify-content:space-between; padding:12px;"><span>#4 خالد حسن</span><span>280 نقطة</span></div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- ==================== WRITER MODAL ==================== -->
+    <div id="writerModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="writerCharTitle" style="font-family:'Noto Sans SC'; font-size:1.8rem;"></h3>
+            <div id="writer-target"></div>
+            <div style="margin-top:15px;">
+                <button class="btn btn-primary" onclick="animateWriter()">إعادة الرسم</button>
+                <button class="btn btn-outline" onclick="closeWriter()">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== QUIZ SETTINGS MODAL ==================== -->
+    <div id="quizSettingsModal" class="modal-overlay">
+        <div class="modal-content" style="text-align: right;">
+            <h3 style="margin-bottom: 20px; text-align: center;">⚙️ إعدادات الاختبار</h3>
+            
+            <div class="settings-group">
+                <label>📝 عدد الأسئلة:</label>
+                <div class="settings-options">
+                    <button class="btn btn-outline active-state" onclick="setConfig('count', 10, this)">10</button>
+                    <button class="btn btn-outline" onclick="setConfig('count', 20, this)">20</button>
+                    <button class="btn btn-outline" onclick="setConfig('count', 30, this)">30</button>
+                </div>
+            </div>
+            
+            <div class="settings-group">
+                <label>️ المؤقت لكل سؤال:</label>
+                <div class="settings-options">
+                    <button class="btn btn-outline active-state" onclick="setConfig('timer', 5, this)">5 ثواني</button>
+                    <button class="btn btn-outline" onclick="setConfig('timer', 10, this)">10 ثواني</button>
+                    <button class="btn btn-outline" onclick="setConfig('timer', 0, this)">بدون مؤقت</button>
+                </div>
+            </div>
+            
+            <div class="settings-group">
+                <label>🌐 لغة الإجابات:</label>
+                <div class="settings-options">
+                    <button class="btn btn-outline active-state" onclick="setConfig('lang', 'ar', this)">العربية</button>
+                    <button class="btn btn-outline" onclick="setConfig('lang', 'en', this)">English</button>
+                </div>
+            </div>
+            
+            <div class="settings-group">
+                <label>📖 وضع السؤال:</label>
+                <div class="settings-options">
+                    <button class="btn btn-outline active-state" onclick="setConfig('mode', 'hanzi', this)">حروف صينية</button>
+                    <button class="btn btn-outline" onclick="setConfig('mode', 'pinyin', this)">Pinyin</button>
+                </div>
+            </div>
+            
+            <div class="settings-group">
+                <label>📚 مستوى الاختبار:</label>
+                <div class="settings-options">
+                    <button class="btn btn-outline active-state" onclick="setConfig('level', 'all', this)">كل المستويات</button>
+                    <button class="btn btn-outline" onclick="setConfig('level', 1, this)">HSK 1</button>
+                    <button class="btn btn-outline" onclick="setConfig('level', 2, this)">HSK 2</button>
+                </div>
+            </div>
+            
+            <button class="btn btn-primary" style="width: 100%; margin-top: 10px;" onclick="beginQuiz()">ابدأ الاختبار الآن </button>
+            <button class="btn btn-outline" style="width: 100%; margin-top: 10px;" onclick="closeQuizSettings()">إلغاء</button>
+        </div>
+    </div>
+
+    <!-- ==================== QUIZ MODAL ==================== -->
+    <div id="quizModal" class="quiz-overlay">
+        <div class="quiz-container">
+            <div class="timer-display" id="timerDisplay" style="display:none;">️ 5s</div>
+            <div id="quizContent">
+                <div class="quiz-header">
+                    <button class="btn btn-outline" style="padding: 5px 10px;" onclick="closeQuiz()">خروج ✕</button>
+                    <span id="quizProgress" style="color:#666; font-size:0.9rem;">سؤال 1 / 10</span>
+                    <span id="quizScore" style="color:var(--primary-red); font-weight:bold;">النتيجة: 0</span>
+                </div>
+                <div class="quiz-question" id="qDisplay"></div>
+                <div class="quiz-pinyin" id="pDisplay"></div>
+                <div class="quiz-options" id="qOptions"></div>
+            </div>
+            <div id="quizResult" class="result-screen">
+                <div id="resultEmoji" style="font-size:4rem; margin-bottom:10px;"></div>
+                <h2 id="resultTitle">انتهى الاختبار!</h2>
+                <div class="result-score" id="finalScore">0 / 0</div>
+                <p id="resultMsg" style="margin-bottom: 20px; color: #666;"></p>
+                <button class="btn btn-primary" onclick="beginQuiz()">إعادة الاختبار</button>
+                <button class="btn btn-outline" onclick="closeQuiz()" style="margin-top:10px;">العودة للرئيسية</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== JAVASCRIPT ==================== -->
+    <script>
+        // ==================== HSK 3.0 VOCABULARY DATABASE ====================
+        // Format: char|pinyin|arabic|english
+        const VOCAB_DATA = {
+            1: `爱|ài|يحب|love|八|bā|ثمانية|eight|爸爸|bà ba|أبي|dad|杯子|bēi zi|كوب|cup|北京|běi jīng|بكين|Beijing|本|běn|كتاب/أصل|book/origin|不客气|bú kè qi|على الرحب|you're welcome|不|bù|لا|no/not|菜|cài|خضار/طبق|vegetable/dish|茶|chá|شاي|tea|吃|chī|يأكل|eat|出租车|chū zū chē|تاكي|taxi|打电话|dǎ diàn huà|يتصل هاتفياً|make a call|大|dà|كبير|big|的|de|أداة إضافة|possessive|点|diǎn|نقطة/ساعة|o'clock/point|电脑|diàn no|كمبيوتر|computer|电视|diàn shì|تلفاز|TV|电影|diàn yǐng|فيلم|movie|东西|dōng xi|شيء|thing|都|dōu|كل/جميع|all/both|读|dú|يقرأ|read|对不起|duì bu q|آسف|sorry|多|duō|كثير|many/much|多少|duō shǎo|كم|how many|儿子|ér zi|ابن|son|二|èr|اثنان|two|饭店|fàn diàn|مطعم|restaurant|飞机|fēi jī|طائرة|airplane|分钟|fēn zhōng|دقيقة|minute|高兴|gāo xìng|سعيد|happy|个|gè|أداة تعداد|measure word|工作|gōng zuò|عمل|work/job|狗|gu|كلب|dog|汉语|hàn yǔ|الصينية|Chinese language|好|hǎo|جيد|good|号|hào|رقم/يوم|number/day|喝|hē|يشرب|drink|和|hé|و|and|很|hěn|جداً|very|后面|hòu miàn|خلف|behind|回|huí|يعود|return|会|huì|يستطيع|can/will|几|jǐ|كم|how many|家|jiā|منزل/عائلة|home/family|叫|jiào|يسمى|be called|今天|jīn tiān|اليوم|today|九|jiǔ|تسعة|nine|开|kāi|يفتح|open|看|kàn|ينظر/يقرأ|look/read|看见|kàn jiàn|يرى|see|块|kuài|يوان/قطعة|yuan/piece|来|lái|يأتي|come|老师|lǎo shī|معلم|teacher|了|le|أداة الماضي|past tense|冷|lěng|بارد|cold|里|lǐ|داخل|inside|六|liù|ستة|six|吗|ma|أداة استفهام|question particle|妈妈|mā ma|أمي|mom|买|mǎi|يشتري|buy|猫|māo|قطة|cat|没关系|méi guān xi|لا بأس|it's okay|没有|méi yǒu|ليس لديه|don't have|米饭|mǐ fàn|أرز|rice|名字|míng zi|اسم|name|明天|míng tiān|غداً|tomorrow|哪|nǎ|أي|which|哪儿|nǎ er|أين|where|那|nà|ذلك|that|呢|ne|أداة استفهام|question particle|能|néng|يستطيع|can|你|nǐ|أنت|you|年|nián|سنة|year|女儿|nǚ ér|ابنة|daughter|朋友|péng you|صديق|friend|漂亮|piào liang|جميل|beautiful|苹果|píng guǒ|تفاح|apple|七|qī|سبعة|seven|前面|qián miàn|أمام|front|钱|qián|مال|money|请|qǐng|من فضلك|please|去|qù|يذهب|go|热|rè|حار|hot|人|rén|شخص|person|认识|rèn shi|يعرف|know|三|sān|ثلاثة|three|商店|shāng diàn|متجر|shop|上|shàng|فوق|up/above|上午|shàng wǔ|صباح|morning|少|shǎo|قليل|few/little|谁|shéi|من|who|什么|shén me|ماذا|what|十|shí|عشرة|ten|时候|shí hou|وقت|time|是|shì|يكون|is/am/are|书|shū|كتاب|book|水|shuǐ|ماء|water|水果|shuǐ guǒ|فاكهة|fruit|睡觉|shuì jiào|ينام|sleep|说|shuō|يقول|speak|四|sì|أربعة|four|岁|suì|سنة (عمر)|years old|他|tā|هو|he|她|tā|هي|she|太|tài|جداً/كثيراً|too/very|天气|tiān qì|طقس|weather|听|tīng|يسمع|listen|同学|tóng xué|زميل دراسة|classmate|喂|wèi|مرحباً (هاتف)|hello (phone)|我|wǒ|أنا|I/me|我们|wǒ men|نحن|we/us|五|wǔ|خمسة|five|喜欢|xǐ huan|يحب|like|下|xià|تحت|down/below|下午|xià wǔ|مساء|afternoon|下雨|xià yǔ|يمطر|rain|先生|xiān sheng|سيد|Mr./sir|现在|xiàn zài|الآن|now|想|xiǎng|يفكر/يريد|think/want|小|xiǎo|صغير|small|小姐|xiǎo jie|آنسة|Miss|些|xiē|بعض|some|写|xiě|يكتب|write|谢谢|xiè xie|شكراً|thanks|星期|xīng qī|أسبوع|week|学生|xué sheng|طالب|student|学习|xué xí|يتعلم|study|学校|xué xiào|مدرسة|school|一|yī|واحد|one|一点儿|yī diǎn er|قليلاً|a little|医生|yī shēng|طبيب|doctor|医院|yī yuàn|مستشفى|hospital|衣服|yī fu|ملابس|clothes|椅子|yǐ zi|كرسي|chair|有|yǒu|لديه|have|月|yuè|شهر|month|再见|zài jiàn|مع السلامة|goodbye|在|zài|في|at/in|怎么|zěn me|كيف|how|怎么样|zěn me yàng|كيف الحال|how is it|这|zhè|هذا|this|中国|zhōng guó|الصين|China|中午|zhōng wǔ|ظهيرة|noon|住|zhù|يسكن|live/reside|桌子|zhuō zi|طاولة|table|字|zì|حرف|character|昨天|zuó tiān|أمس|yesterday|做|zuò|يعمل|do/make|坐|zuò|يجلس|sit`,
+            2: `吧|ba|أداة نبرة|particle|白|bái|أبيض|white|百|bǎi|مائة|hundred|帮助|bāng zhù|يساعد|help|报纸|bào zhǐ|جريدة|newspaper|比|bǐ|يقارن|compare|别|bié|لا تفعل|don't|宾馆|bīn guǎn|فندق|hotel|长|cháng|طويل|long|唱歌|chàng gē|يغني|sing|出|chū|يخرج|go out|穿|chuān|يرتدي|wear|次|cì|مرة|time/occurrence|从|cóng|من|from|错|cuò|خطأ|wrong|打篮球|dǎ lán qiú|يلعب كرة سلة|play basketball|大家|dà jiā|الجميع|everyone|到|dào|يصل|arrive|得|de|أداة درجة|degree particle|等|děng|ينتظر|wait|弟弟|dì di|أخ أصغر|younger brother|第一|dì yī|الأول|first|懂|dǒng|يفهم|understand|对|duì|صحيح|correct|房间|fáng jiān|غرفة|room|非常|fēi cháng|جداً|very|服务员|fú wù yuán|نادل|waiter|高|gāo|عالٍ|tall/high|告诉|gào su|يخبر|tell|哥哥|gē ge|أخ أكبر|older brother|给|gěi|يعطي|give|公共汽车|gōng gòng qì chē|حافلة|bus|公司|gōng sī|شركة|company|贵|guì|غالٍ|expensive|过|guo|أداة الماضي|experiential|孩子|hái zi|طفل|child|还|hái|ما زال|still|好吃|hǎo chī|لذيذ|delicious|黑|hēi|أسود|black|红|hóng|أحمر|red|火车站|huǒ chē zhàn|محطة قطار|train station|机场|jī chǎng|مطار|airport|鸡蛋|jī dàn|بيض|egg|件|jiàn|قطعة|measure word|教室|jiào shì|فصل|classroom|姐姐|jiě jie|أخت أكبر|older sister|介绍|jiè shào|يقدم|introduce|近|jìn|قريب|near|进|jìn|يدخل|enter|就|jiù|فقط/ثم|just/then|觉得|jué de|يشعر|feel|咖啡|kā fēi|قهوة|coffee|开始|kāi shǐ|يبدأ|start|考试|kǎo shì|امتحان|exam|可能|kě néng|ربما|maybe|可以|kě yǐ|يمكن|can/may|课|kè|درس|lesson/class|快|kuài|سريع|fast|快乐|kuài lè|سعيد|happy|累|lèi|متعب|tired|离|lí|يبتعد|leave/from|两|liǎng|اثنان|two|零|líng|صفر|zero|路|lù|طريق|road|旅游|lǚ yóu|سياحة|travel|卖|mài|يبيع|sell|慢|màn|بطيء|slow|忙|máng|مشغول|busy|每|měi|كل|every|妹妹|mèi mei|أخت أصغر|younger sister|门|mén|باب|door|面条|miàn tiáo|نودلز|noodles|男|nán|رجل|male|您|nín|حضرتك|you (polite)|牛奶|niú nǎi|حليب|milk|女|nǚ|امرأة|female|旁边|páng biān|جانب|side|跑步|pǎo bù|يركض|run|便宜|pián yi|رخيص|cheap|票|piào|تذكرة|ticket|妻子|qī zi|زوجة|wife|起床|qǐ chuáng|يستيقظ|get up|千|qiān|ألف|thousand|铅笔|qiān bǐ|قلم رصاص|pencil|晴|qíng|مشمس|sunny|去年|qù nián|السنة الماضية|last year|让|ràng|يسمح|let/allow|日|rì|يوم|day|上班|shàng bān|يذهب للعمل|go to work|身体|shēn tǐ|جسم|body|生病|shēng bìng|يمرض|get sick|生日|shēng rì|عيد ميلاد|birthday|时间|shí jiān|وقت|time|事情|shì qing|شيء/أمر|thing/matter|手表|shǒu biǎo|ساعة يد|watch|手机|shǒu jī|هاتف محمول|mobile phone|说话|shuō huà|يتكلم|speak|送|sòng|يرسل/يهدي|send/give|虽然...但是|suī rán|رغم أن... لكن...|although... but...|它|tā|هو/هي (لغير العاقل)|it|踢足球|tī zú qiú|يلعب كرة قدم|play football|题|tí|سؤال|question|跳舞|tiào wǔ|يرقص|dance|外|wài|خارج|outside|完|wán|ينتهي|finish|玩|wán|يلعب|play|晚上|wn shang|مساء|evening|往|wǎng|إلى|towards|为什么|wèi shén me|لماذا|why|问|wèn|يسأل|ask|问题|wèn tí|مشكلة/سؤال|problem/question|希望|xī wàng|يأمل|hope|西瓜|xī guā|بطيخ|watermelon|洗|xǐ|يغسل|wash|小时|xiǎo shí|ساعة|hour|笑|xiào|يضحك|laugh|新|xīn|جديد|new|姓|xìng|اسم العائلة|surname|休息|xiū xi|يستريح|rest|雪|xuě|ثلج|snow|颜色|yán sè|لون|color|眼睛|yǎn jing|عين|eye|羊肉|yáng ròu|لحم خروف|mutton|药|yào|دواء|medicine|要|yào|يريد|want|也|yě|أيضاً|also|一下|yī xià|قليلاً|a bit|已经|yǐ jīng|بالفعل|already|一起|yī qǐ|معاً|together|意思|yì si|معنى|meaning|因为...所以|yīn wèi|لأن... لذلك...|because... so...|阴|yīn|غائم|cloudy|游泳|yóu yng|يسبح|swim|右边|yòu bian|يمين|right|鱼|yú|سمك|fish|远|yuǎn|بعيد|far|运动|yùn dòng|رياضة|sport|再|zài|مرة أخرى|again|早上|zo shang|صباح|morning|丈夫|zhàng fu|زوج|husband|找|zhǎo|يبحث|look for|着|zhe|أداة الاستمرار|continuous|真|zhēn|حقاً|really|正在|zhèng zài|في process|in progress|知道|zhī dào|يعرف|know|准备|zhǔn bèi|يستعد|prepare|走|zǒu|يمشي|walk|最|zuì|الأكثر|most|左边|zuǒ bian|يسار|left`,
+            3: `阿姨|ā yí|عمة|aunt|啊|a|أداة|ah|矮|ǎi|قصير|short|爱好|ài hào|هواية|hobby|安静|ān jìng|هادئ|quiet|把|bǎ|أداة|measure word|搬|bān|ينقل|move|班|bān|فصل|class|半|bàn|نصف|half|办法|bàn fǎ|طريقة|method|办公室|bàn gōng shì|مكتب|office|帮忙|bāng máng|يساعد|help|包|bāo|حقيبة|bag|饱|bo|شبعان|full|保护|bǎo hù|يحمي|protect|抱歉|bào qiàn|آسف|apologize|背|bēi|يحمل|carry|北|běi|شمال|north|被|bèi|مبني للمجهول|passive|本|běn|مقياس|measure word|笨|bèn|غبي|stupid|比如|bǐ rú|مثلاً|for example|毕业|bì yè|يتخرج|graduate|遍|biàn|مرة|time|标准|biāo zhǔn|معيار|standard|表|biǎo|ساعة/جدول|watch/table|表示|biǎo shì|يعبر|express|表演|biǎo yǎn|يعرض|perform|别人|bié rén|آخرون|others|冰箱|bīng xiāng|ثلاجة|fridge|不仅|bù jǐn|ليس فقط|not only|不过|bú guò|لكن|however|不得不|bù dé bù|لا بد|have to|不管|bù guǎn|بغض النظر|no matter|不相上下|bù xiāng shàng xià|متساوي|evenly matched|才|cái|فقط/ثم|only then|菜单|cài dān|قائمة|menu|参加|cān jiā|يشارك|participate|草|cǎo|عشب|grass|层|céng|طبقة|floor|差|chà|فرق/سيء|poor|差不多|chà bu duō|تقريباً|almost|超市|chāo shì|سوبرماركت|supermarket|衬衫|chèn shān|قميص|shirt|成绩|chéng jì|نتيجة|result|城市|chéng shì|مدينة|city|迟到|chí dào|يتأخر|be late|除了|chú le|ماعدا|except|厨房|chú fáng|مطبخ|kitchen|出现|chū xiàn|يظهر|appear|穿|chuān|يرتدي|wear|传真|chuán zhēn|فاكس|fax|窗|chuāng|نافذة|window|词语|cí yǔ|كلمات|words|聪明|cōng míng|ذكي|smart|打扫|dǎ sǎo|ينظف|clean|打算|dǎ suàn|يخطط|plan|带|dài|يحمل/يأخذ|bring|担心|dān xīn|يقلق|worry|蛋糕|dàn gāo|كعكة|cake|当然|dāng rán|بالطبع|of course|灯|dēng|مصباح|lamp|地方|dì fāng|مكان|place|地图|dì tú|خريطة|map|地铁|dì tiě|مترو|subway|电梯|diàn tī|مصعد|elevator|电子邮件|diàn zǐ yóu jiàn|بريد|email|东|dōng|شرق|east|冬|dōng|شتاء|winter|动物|dòng wù|حيوان|animal|短|duǎn|قصير|short|段|duàn|قطعة|paragraph|锻炼|duàn liàn|يتمرن|exercise|多么|duō me|كم!|how!|饿|è|جوعان|hungry|而且|ér qiě|وأيضاً|and moreover|耳朵|ěr duo|أذن|ear|发|fā|يرسل|send|发烧|fā shāo|حرارة|fever|发现|fā xiàn|يكتشف|discover|方便|fāng biàn|مريح|convenient|放|fàng|يضع|put|放心|fàng xīn|يطمئن|relax|分|fēn|يقسم|divide|丰富|fēng fù|غني|rich|附近|fù jìn|قريب|nearby|复习|fù xí|يراجع|review|干净|gān jìng|نظيف|clean|感冒|gǎn mào|زكام|cold|感觉|gǎn jué|يشعر|feel|刚才|gāng cái|قبل قليل|just now|高|gāo|عالٍ|tall|告诉|gào su|يخبر|tell|个子|gè zi|قامة|height|根据|gēn jù|حسب|according to|跟|gēn|مع|with|更|gèng|أكثر|more|公开|gōng kāi|علني|public|公园|gōng yuán|حديقة|park|够|gòu|يكفي|enough|姑姑|gū gu|عمة|aunt|故事|gù shi|قصة|story|故意|gù yì|عمداً|deliberately|刮风|guā fēng|تهب الرياح|windy|关|guān|يغلق|close|关心|guān xīn|يهتم|care|关系|guān xi|علاقة|relationship|关于|guān yú|بخصوص|about|国家|guó jiā|بلد|country|果汁|guǒ zhī|عصير|juice|过|guò|يمر|pass|还是|hái shi|أو|or|害怕|hài pà|يخاف|afraid|害羞|hài xiū|خجول|shy|寒假|hán jià|إجازة شتوية|winter vacation|汗|hàn|عرق|sweat|航班|háng bān|رحلة|flight|好处|hǎo chu|فائدة|benefit|好像|hǎo xiàng|كأن|seems like|号码|hào mǎ|رقم|number|适合|shì hé|يناسب|suitable|黑|hēi|أسود|black|后来|hòu lái|لاحقاً|later|护照|hù zhào|جواز|passport|花园|huā yuán|حديقة|garden|划|huá|يجدف|row|坏|huài|سيء|bad|欢迎|huān yíng|أهلاً|welcome|还|hái|ما زال|still|环境|huán jìng|بيئة|environment|换|huàn|يبدل|change|黄|huáng|أصفر|yellow|回忆|huí yì|يتذكر|remember|或者|huò zhě|أو|or|几乎|jī hū|تقريباً|almost|机会|jī huì|فرصة|opportunity|基础|jī chǔ|أساس|foundation|激动|jī dòng|متحمس|excited|极了|jí le|جداً|extremely|集合|jí hé|يجتمع|gather|记得|jì de|يتذكر|remember|季节|jì jié|موسم|season|检查|jiǎn chá|يفحص|check|简单|jin dān|بسيط|simple|件|jiàn|قطعة|piece|健康|jiàn kāng|صحة|health|见面|jiàn miàn|يلتقي|meet|讲|jiǎng|يتكلم|speak|教|jiāo|يعلم|teach|角|jiǎo|زاوية|corner|脚|jiǎo|قدم|foot|接|jiē|يستقبل|receive|街道|jiē dào|شارع|street|节目|jié mù|برنامج|program|节日|jié rì|عيد|festival|结婚|jié hūn|يتزوج|marry|解决|jiě jué|يحل|solve|借|jiè|يستعير|borrow|经常|jīng cháng|غالباً|often|经过|jīng guò|يمر|pass by|经济|jīng jì|اقتصاد|economy|精彩|jīng cǎi|رائع|wonderful|警察|jng chá|شرطة|police|镜子|jìng zi|مرآة|mirror|竟然|jìng rán|فجأة|unexpectedly|酒|jiǔ|كحول|alcohol|救|jiù|ينقذ|save|句子|jù zi|جملة|sentence|决定|jué dìng|يقرر|decide|可爱|kě ài|لطيف|cute|客人|kè rén|ضيف|guest|空调|kōng tiáo|تكييف|AC|苦|kǔ|مر|bitter|裤子|kù zi|بنطلون|pants|快|kuài|سريع|fast|快乐|kuài lè|سعيد|happy|困|kùn|نعسان|sleepy|垃圾|lā jī|قمامة|garbage|拉|lā|يسحب|pull|来|lái|يأتي|come|蓝|lán|أزرق|blue|懒|lǎn|كسول|lazy|老|lo|قديم|old|老板|lǎo bǎn|مدير|boss|老公|lǎo gōng|زوج|husband|老婆|lǎo pó|زوجة|wife|老鼠|lǎo shǔ|فأر|mouse|奶奶|nǎi nai|جدة|grandma|南|nán|جنوب|south|难|nán|صعب|difficult|难过|nán guò|حزين|sad|年级|nián jí|صف|grade|年轻|nián qīng|شاب|young|鸟|niǎo|عصفور|bird|努力|nǔ lì|يجتهد|work hard|爬山|pá shān|يتسلق|climb|怕|pà|يخاف|afraid|胖|pàng|سمين|fat|跑|pǎo|يركض|run|配|pèi|يطابق|match|朋友|péng you|صديق|friend|皮鞋|pí xié|حذاء جلد|leather shoes|啤酒|pí jiǔ|بيرة|beer|平时|píng shí|عادة|usually|破|pò|مكسور|broken|普通话|pǔ tōng huà|ماندرين|Mandarin|七|qī|سبعة|seven|其实|qí shí|في الواقع|actually|其他|qí tā|آخر|other|奇怪|qí guài|عجيب|strange|起来|qǐ lái|يقف|stand up|清楚|qīng chu|واضح|clear|请假|qǐng jià|يطلب إجازة|ask for leave|秋天|qiū tiān|خريف|autumn|求|qiú|يطلب|request|全部|quán bù|كل|all|裙子|qún zi|فستان|skirt|然后|rán hòu|ثم|then|让|ràng|يسمح|let|热闹|rè nao|صاخب|lively|认为|rèn wéi|يعتقد|think|认真|rèn zhēn|جاد|serious|如果|rú guǒ|إذا|if|伞|sǎn|مظلة|umbrella|上网|shàng wng|يتصفح|go online|生气|shēng qì|يغضب|angry|声音|shēng yīn|صوت|sound|世界|shì jiè|عالم|world|试|shì|يحاول|try|瘦|shòu|نحيف|thin|舒服|shū fu|مريح|comfortable|叔叔|shū shu|عم|uncle|树|shù|شجرة|tree|数学|shù xué|رياضيات|math|刷牙|shuā yá|يفرش|brush teeth|双|shuāng|زوج|pair|水平|shuǐ píng|مستوى|level|司机|sī jī|سائق|driver|太阳|tài yáng|شمس|sun|特别|tè bié|خاص|special|疼|téng|يؤلم|hurt|提高|tí gāo|يرفع|improve|题|tí|سؤال|question|跳|tiào|يقفز|jump|听|tīng|يسمع|listen|挺|tǐng|جداً|quite|通过|tōng guò|يمر|pass through|同|tóng|نفس|same|同意|tóng yì|يوافق|agree|突然|tū rán|فجأة|suddenly|图书馆|tú shū guǎn|مكتبة|library|腿|tuǐ|ساق|leg|完成|wán chéng|يكمل|complete|万|wàn|عشرة آلاف|ten thousand|忘记|wàng jì|ينسى|forget|为什么|wèi shén me|لماذا|why|文化|wén huà|ثقافة|culture|西|xī|غرب|west|习惯|xí guàn|عادة|habit|洗手间|xǐ shǒu jiān|حمام|restroom|洗澡|xǐ zǎo|يستحم|bathe|夏|xià|صيف|summer|先|xiān|أولاً|first|相信|xiāng xìn|يصدق|believe|香蕉|xiāng jiāo|موز|banana|像|xiàng|يشبه|like|小心|xiǎo xīn|بحذر|careful|校长|xiào zhǎng|مدير مدرسة|principal|新闻|xīn wén|أخبار|news|新|xīn|جديد|new|休息|xiū xi|يستريح|rest|选|xuǎn|يختار|choose|眼睛|yǎn jing|عين|eye|样子|yàng zi|شكل|appearance|药|yào|دواء|medicine|也许|yě xǔ|ربما|perhaps|叶子|yè zi|ورقة|leaf|一边...一边|yì biān|بينما|while|一共|yí gòng|مجموع|total|一会儿|yí huì er|قليلاً|a while|一定|yí dìng|بالتأكيد|definitely|一样|yí yàng|نفس|same|意思|yì si|معنى|meaning|因为|yīn wèi|لأن|because|阴|yīn|غائم|cloudy|应该|yīng gāi|ينبغي|should|影响|yǐng xiǎng|يؤثر|influence|用|yòng|يستخدم|use|游戏|yóu xì|لعبة|game|有名|yǒu míng|مشهور|famous|又...又|yòu... yòu|و... و|both... and|遇到|yù dào|يقابل|meet|愿意|yuàn yì|يرغب|willing|月亮|yuè liang|قمر|moon|越|yuè|كلما|more|站|zhàn|محطة|station|张|zhāng|مقياس|measure word|着急|zháo jí|يقلق|anxious|找|zhǎo|يبحث|search|照顾|zhào gu|يعتني|take care of|照片|zhào piàn|صورة|photo|真正|zhēn zhèng|حقيقي|real|正|zhèng|بالضبط|exactly|知道|zhī dào|يعرف|know|直|zhí|مستقيم|straight|只有|zhǐ yǒu|فقط|only|指|zhǐ|يشير|point|终于|zhōng yú|أخيراً|finally|种|zhng|نوع|kind|重要|zhòng yào|مهم|important|周|zhōu|أسبوع|week|主要|zhǔ yào|رئيسي|main|准备|zhn bèi|يجهز|prepare|桌子|zhuō zi|طاولة|table|仔细|zǐ xì|بدقة|careful|自己|zì jǐ|نفسه|oneself|字母|zì mǔ|حروف|alphabet|总是|zǒng shì|دائماً|always|嘴|zu|فم|mouth|最后|zuì hòu|أخيراً|finally|最|zuì|الأكثر|most|左边|zuǒ bian|يسار|left|座位|zuò wèi|مقعد|seat`,
+            4: `阿姨|ā yí|عمة|aunt|爱情|ài qíng|حب|love|安排|ān pái|يرتب|arrange|安全|ān quán|أمان|safe|按时|àn shí|في الوقت المحدد|on time|暗|àn|مظلم|dark|包括|bāo kuò|يشمل|include|保护|bǎo hù|يحمي|protect|保证|bo zhèng|يضمن|guarantee|报道|bào dào|تقرير|report|报名|bào míng|يسجل|register|抱|bào|يعانق|hug|抱歉|bào qiàn|آسف|sorry|被子|bèi zi|بطانية|blanket|本科|běn kē|بكالوريوس|bachelor|本来|běn lái|أصلاً|originally|笨|bèn|غبي|stupid|比较|bǐ jiào|مقارنة|compare|比赛|bǐ sài|مسابقة|competition|毕业|bì yè|يتخرج|graduate|避免|bì miǎn|يتجنب|avoid|编辑|biān jí|يحرر|edit|鞭炮|biān pào|فرقعة|firecracker|变化|biàn huà|تغير|change|标准|biāo zhǔn|معيار|standard|表达|biǎo dá|يعبر|express|表示|biǎo shì|يعبر|express|表演|biǎo yǎn|يعرض|perform|表彰|biǎo zhāng|يمدح|commend|冰箱|bīng xiāng|ثلاجة|fridge|不但|bú dàn|ليس فقط|not only|不过|bú guò|لكن|however|部分|bù fen|جزء|part|猜|cāi|يخمن|guess|材料|cái liào|مواد|material|参观|cān guān|يزور|visit|参加|cān jiā|يشارك|participate|餐厅|cān tīng|مطعم|dining room|残疾|cán jí|معاق|disabled|操场|cāo chǎng|ملعب|playground|测试|cè shì|اختبار|test|曾经|céng jīng|سابقاً|once|叉子|chā zi|شوكة|fork|差别|chā bié|فرق|difference|差不多|chà bu duō|تقريباً|almost|拆开|chāi kāi|يفكك|dismantle|产品|chn pǐn|منتج|product|产生|chǎn shēng|ينتج|produce|长大|zhǎng dà|يكبر|grow up|常识|cháng shí|معرفة عامة|common sense|尝|cháng|يذوق|taste|场|chǎng|ميدان|field|超过|chāo guò|يتجاوز|exceed|炒|cho|يقلب|stir-fry|车|chē|سيارة|car|扯|chě|يسحب|pull|成立|chéng lì|يتأسس|establish|成为|chéng wéi|يصبح|become|诚实|chéng shí|صادق|honest|承受|chéng shòu|يتحمل|bear|程度|chéng dù|درجة|degree|城市|chéng shì|مدينة|city|迟到|chí dào|يتأخر|be late|尺子|chǐ zi|مسطرة|ruler|翅膀|chì bǎng|جناح|wing|充|chōng|يملأ|fill|冲|chōng|يندفع|rush|宠物|chǒng wù|حيوان أليف|pet|丑|chǒu|قبيح|ugly|臭|chòu|كريه|smelly|出生|chū shēng|يولد|be born|出发|chū fā|ينطلق|depart|出口|chū kǒu|مخرج|exit|出色|chū sè|متميز|outstanding|出现|chū xiàn|يظهر|appear|厨房|chú fáng|مطبخ|kitchen|除|chú|يستثني|except|传播|chuán bō|ينقل|spread|传统|chuán tǒng|تقليد|tradition|窗帘|chuāng lián|ستارة|curtain|闯|chuǎng|يت闯闯|break into|创作|chuàng zuò|يبدع|create|吹|chuī|ينفخ|blow|词语|cí yǔ|كلمات|words|刺激|cì jī|يحفز|stimulate|匆忙|cōng máng|مستعجل|hasty|葱|cōng|بصل أخضر|green onion|从来|cóng lái|أبداً|never|粗|cū|خشن|rough|醋|cù|خل|vinegar|催促|cuī cù|يستعجل|urge|存在|cún zài|يوجد|exist|错|cuò|خطأ|wrong|打算|dǎ suàn|يخطط|plan|打扮|d ban|يتزين|dress up|打扰|dǎ rǎo|يزعج|disturb|打折|dǎ zhé|يخصم|discount|打车|dǎ chē|يأخذ تاكسي|take taxi|打印|dǎ yìn|يطبع|print|达到|dá dào|يصل إلى|reach|答案|dá àn|إجابة|answer|大方|dà fāng|كريم|generous|大陆|dà lù|البر الرئيسي|mainland|大声|dà shēng|بصوت عالٍ|loud|大象|dà xiàng|فيل|elephant|大概|dà gài|تقريباً|approximately|大夫|dài fu|طبيب|doctor|带|dài|يحمل|bring|代替|dài tì|يستبدل|replace|代表|dài biǎo|يمثل|represent|贷款|dài kuǎn|قرض|loan|待遇|dài yù|معاملة|treatment|担心|dān xīn|يقلق|worry|单纯|dān chún|بسيط|pure|单独|dān dú|منفرد|alone|单位|dān wèi|وحدة|unit|淡|dàn|باهت|light|弹|tán|يعزف|play instrument|蛋糕|dàn gāo|كعكة|cake|当然|dāng rán|بالطبع|of course|当地|dāng dì|محلي|local|当时|dāng shí|في ذلك الوقت|at that time|挡|dǎng|يمنع|block|刀|dāo|سكين|knife|导演|dǎo yǎn|مخرج|director|导致|dǎo zhì|يؤدي إلى|lead to|倒|dào|يسكب|pour|到处|dào chù|في كل مكان|everywhere|到底|dào dǐ|في النهاية|after all|倒|dǎo|يسقط|fall|盗窃|dào qiè|يسرق|steal|道路|dào lù|طريق|road|道德|dào dé|أخلاق|morality|得到|dé dào|يحصل على|obtain|得意|dé yì|فخور|proud|灯|dēng|مصباح|lamp|等|děng|ينتظر|wait|等于|děng yú|يساوي|equal|低|dī|منخفض|low|滴|dī|قطرة|drop|敌人|dí rén|عدو|enemy|地道|dì dao|ممر تحت الأرض|tunnel|地理|dì lǐ|جغرافيا|geography|地区|dì qū|منطقة|region|地址|dì zhǐ|عنوان|address|地震|dì zhèn|زلزال|earthquake|递|dì|يسلم|hand over|第二|dì èr|الثاني|second|点|diǎn|نقطة|point|电|diàn|كهرباء|electricity|电池|diàn chí|بطارية|battery|电厂|diàn chǎng|محطة كهرباء|power plant|电脑|diàn nǎo|كمبيوتر|computer|电器|diàn qì|أجهزة كهربائية|appliances|电梯|diàn tī|مصعد|elevator|电影|diàn yǐng|فيلم|movie|电子|diàn zǐ|إلكتروني|electronic|垫|diàn|وسادة|pad|钓|diào|يصطاد|fish|顶|dǐng|قمة|top|丢|diū|يخسر|lose|冬|dōng|شتاء|winter|动物|dòng wù|حيوان|animal|冻|dòng|يتجمد|freeze|洞|dòng|حفرة|hole|都|dōu|كل|all|斗|dòu|يقاتل|fight|读|dú|يقرأ|read|独立|dú lì|مستقل|independent|独特|dú tè|فريد|unique|堵|dǔ|يسد|block|度|dù|درجة|degree|度过|dù guò|يقضي|spend|端|duān|طرف|end|短|duǎn|قصير|short|段|duàn|قطعة|paragraph|锻炼|duàn liàn|يتمرن|exercise|断|duàn|يقطع|break|堆|duī|كومة|pile|对|duì|صحيح|correct|对比|duì bǐ|مقارنة|contrast|对待|duì dài|يعامل|treat|对抗|duì kàng|يواجه|confront|对|duì|لـ|to/toward|队伍|duì wu|فريق|team|蹲|dūn|يقرفص|squat|顿|dùn|وجبة|meal|多|duō|كثير|many|躲|du|يختبئ|hide|饿|è|جوعان|hungry|儿子|ér zi|ابن|son|二|èr|اثنان|two|发布|fā bù|ينشر|publish|发明|fā míng|يخترع|invent|发生|fā shēng|يحدث|happen|发|fā|يرسل|send|发现|fā xiàn|يكتشف|discover|发展|fā zhǎn|يتطور|develop|罚款|fá kuǎn|غرامة|fine|法院|fǎ yuàn|محكمة|court|翻|fān|يقلب|flip|帆|fān|شراع|sail|翻译|fān yì|يترجم|translate|烦|fán|مزعج|annoying|反对|fǎn duì|يعارض|oppose|反应|fn yìng|رد فعل|response|反映|fǎn yìng|يعكس|reflect|范围|fàn wéi|نطاق|scope|饭|fàn|أرز/وجبة|rice/meal|方法|fāng f|طريقة|method|方面|fāng miàn|جانب|aspect|方向|fāng xiàng|اتجاه|direction|方圆|fāng yuán|محيط|surrounding|仿佛|fng fú|كأن|as if|放|fàng|يضع|put|放弃|fàng qì|يتخلى|give up|放松|fàng sōng|يرتاح|relax|飞|fēi|يطير|fly|非|fēi|غير|non-|非常|fēi cháng|جداً|very|肥|féi|سمين|fat|废|fèi|مهمل|waste|费|fèi|رسوم|fee|分享|fēn xiǎng|يشارك|share|分|fēn|يقسم|divide|分别|fēn bié|على حدة|separately|分析|fēn xī|يحلل|analyze|分配|fēn pèi|يوزع|distribute|分数|fēn shù|درجة|score|奋斗|fèn dòu|يجاهد|struggle|风格|fēng gé|أسلوب|style|风景|fēng jǐng|منظر|scenery|风俗|fēng sú|عادة|custom|封|fēng|يغلق|seal|疯|fēng|مجنون|crazy|蜂蜜|fēng mì|عسل|honey|逢|féng|يصادف|meet|否定|fu dìng|ينفي|deny|否|fǒu|لا|no|附近|fù jìn|قريب|nearby|负担|fù dān|عبء|burden|负责|fù zé|يتحمل مسؤولية|responsible|复制|fù zhì|ينسخ|copy|富|fù|غني|rich|复习|fù xí|يراجع|review|改善|gǎi shàn|يحسن|improve|改变|gǎi biàn|يغير|change|改正|gǎi zhèng|يصحح|correct|盖|gài|يغطي|cover|干|gān|جاف|dry|干|gàn|يفعل|do|干净|gān jìng|نظيف|clean|干涉|gān shè|يتدخل|interfere|赶|gn|يلحق|catch up|赶紧|gǎn jǐn|بسرعة|hurry|感动|gǎn dòng|يتأثر|moved|感觉|gǎn jué|يشعر|feel|感谢|gǎn xiè|يشكر|thank|敢|gǎn|يجرؤ|dare|干|gàn|جاف|dry|刚|gāng|بالكاد|just now|刚才|gāng cái|قبل قليل|just now|钢笔|gāng bǐ|قلم حبر|pen|港口|gǎng kǒu|ميناء|port|高|gāo|عالٍ|tall|高级|gāo jí|متقدم|advanced|高峰|gāo fēng|ذروة|peak|高兴|gāo xìng|سعيد|happy|搞|gǎo|يفعل|do|稿|gǎo|مسودة|draft|告别|gào bié|يودع|farewell|告诉|gào su|يخبر|tell|哥们儿|gē men er|صاحب|buddy|割|gē|يقطع|cut|歌|gē|أغنية|song|个|gè|أداة تعداد|measure word|各|gè|كل|each|根|gēn|جذر|root|根据|gēn jù|حسب|according to|跟|gēn|مع|with|更|gèng|أكثر|more|工程|gōng chéng|هندسة|engineering|工厂|gōng chǎng|مصنع|factory|工夫|gōng fu|وقت|time|公开|gōng kāi|علني|public|公开|gōng kāi|علن|open|公里|gōng lǐ|كيلومتر|kilometer|公平|gōng píng|عادل|fair|公寓|gōng yù|شقة|apartment|公园|gōng yuán|حديقة|park|贡献|gòng xiàn|يساهم|contribute|沟通|gōu tōng|يتواصل|communicate|构成|gòu chéng|يتكون|compose|购买|gòu mǎi|يشتري|purchase|够|gòu|يكفي|enough|估计|gū jì|يقدر|estimate|姑姑|gū gu|عمة|aunt|姑娘|gū niang|فتاة|girl|古代|gǔ dài|قديم|ancient|古典|gǔ diǎn|كلاسيكي|classical|鼓励|gǔ lì|يشجع|encourage|固定|gù dìng|ثابت|fixed|故意|gù yì|عمداً|deliberately|顾客|gù kè|عميل|customer|挂号|guà hào|يسجل|register|刮|guā|يكشط|scrape|乖|guāi|مطيع|obedient|关闭|guān bì|يغلق|close|关心|guān xīn|يهتم|care|关键|guān jiàn|مفتاح|key|观众|guān zhòng|جمهور|audience|管理|guǎn l|يدير|manage|光|guāng|ضوء|light|光滑|guāng huá|أملس|smooth|光临|guāng lín|تشريف|honor us|光明|guāng míng|مشرق|bright|广大|guǎng dà|واسع|vast|广告|guǎng gào|إعلان|advertisement|归|guī|يعود|return|规律|guī lǜ|قاعدة|rule|规模|guī mó|حجم|scale|规则|guī zé|قاعدة|rule|滚|gǔn|يتدحرج|roll|锅|guō|قدر|pot|国家|guó jiā|بلد|country|果然|guǒ rán|كما متوقع|as expected|过程|guò chéng|عملية|process|过去|guò qù|ماضي|past|过|guò|يمر|pass|哈|hā|ها|ha|海|hǎi|بحر|sea|害羞|hài xiū|خجول|shy|含义|hán yì|معنى|meaning|寒冷|hán lěng|بارد|cold|喊|hǎn|ينادي|shout|行业|háng yè|صناعة|industry|毫不|háo bù|ليس على الإطلاق|not at all|好|hǎo|جيد|good|好处|hǎo chu|فائدة|benefit|好像|hǎo xiàng|كأن|seems like|号|hào|رقم|number|喝|hē|يشرب|drink|合|hé|يتحد|combine|合适|hé shì|مناسب|suitable|合作|hé zuò|يتعاون|cooperate|河|hé|نهر|river|核|hé|نووي|nuclear|盒子|hé zi|صندوق|box|黑色|hēi sè|أسود|black|恨|hèn|يكره|hate|哼|hēng|همهم|hmm|红|hóng|أحمر|red|猴子|hóu zi|قرد|monkey|厚|hòu|سميك|thick|后悔|hòu huǐ|يندم|regret|后来|hòu lái|لاحقاً|later|呼吸|hū xī|يتنفس|breathe|忽然|hū rán|فجأة|suddenly|忽视|hū shì|يتجاهل|ignore|湖|hú|بحيرة|lake|互相|hù xiāng|متبادل|mutual|花|huā|زهرة|flower|花|huā|ينفق|spend|花园|huā yuán|حديقة|garden|划|huá|يجدف|row|化学|huà xué|كيمياء|chemistry|画|huà|يرسم|draw|话筒|huà tǒng|ميكروفون|microphone|坏|huài|سيء|bad|欢迎|huān yíng|أهلاً|welcome|环境|huán jìng|بيئة|environment|换|huàn|يبدل|change|黄|huáng|أصفر|yellow|灰|huī|رمادي|grey|回答|huí dá|يجيب|answer|回来|huí lái|يعود|return|回忆|huí yì|يتذكر|remember|会议|huì yì|اجتماع|meeting|活|huó|يعيش|live|活动|huó dòng|نشاط|activity|火柴|huǒ chái|عود كبريت|match|获得|huò dé|يحصل على|obtain|基础|jī chǔ|أساس|foundation|机器|jī qì|آلة|machine|肌肉|jī ròu|عضلات|muscle|积极|jī jí|إيجابي|positive|及时|jí shí|في الوقت المناسب|timely|即使|jí shǐ|حتى لو|even if|急|jí|مستعجل|urgent|集合|jí hé|يجتمع|gather|几|jǐ|كم|how many|计划|jì huà|خطة|plan|记忆|jì yì|ذاكرة|memory|技术|jì shù|تكنولوجيا|technology|季节|jì jié|موسم|season|继续|jì xù|يكمل|continue|寄|jì|يرسل|mail|加班|jiā bān|عمل إضافي|overtime|加|jiā|يضيف|add|家具|jiā jù|أثاث|furniture|家庭|jiā tíng|عائلة|family|家乡|jiā xiāng|مسقط رأس|hometown|假|ji|كاذب|false|价格|jià gé|سعر|price|价值|jià zhí|قيمة|value|驾驶|jià shǐ|يقود|drive|坚决|jiān jué|حاسم|firm|艰难|jiān nán|صعب|difficult|监督|jiān dū|يشرف|supervise|剪|jiǎn|يقص|cut|检查|jiǎn chá|يفحص|check|简单|jin dān|بسيط|simple|减少|jiǎn shǎo|يقلل|reduce|见|jiàn|يرى|see|健康|jiàn kāng|صحة|health|建筑|jiàn zhù|بناء|building|将来|jiāng lái|مستقبل|future|奖励|jiǎng lì|مكافأة|reward|讲话|jiǎng huà|يتكلم|speak|降|jiàng|ينخفض|descend|交|jiāo|يسلم|hand over|交流|jiāo liú|يتبادل|exchange|交通|jiāo tōng|مرور|traffic|郊外|jiāo wài|ضواحي|suburbs|骄傲|jiāo ào|فخور|proud|角|jiǎo|زاوية|corner|饺子|jiǎo zi|زلابية|dumpling|教|jiào|يعلم|teach|教育|jiào yù|تعليم|education|阶段|jiē duàn|مرحلة|stage|接近|jiē jìn|يقترب|approach|接受|jiē shòu|يقبل|accept|街|jiē|شارع|street|节目|jié mù|برنامج|program|节省|jié shěng|يوفر|save|结构|jié gòu|هيكل|structure|结合|jié hé|يجمع|combine|结论|jié lùn|استنتاج|conclusion|结婚|jié hūn|يتزوج|marry|解|jiě|يحل|solve|姐姐|jiě jie|أخت أكبر|older sister|届|jiè|دورة|session|借|jiè|يستعير|borrow|介绍|jiè shào|يقدم|introduce|戒|jiè|يتوقف عن|quit|金属|jīn shǔ|معدن|metal|尽快|jn kuài|في أقرب وقت|as soon as|尽管|jǐn gun|رغم|despite|紧张|jǐn zhāng|متوتر|nervous|进|jìn|يدخل|enter|进口|jìn kǒu|استيراد|import|进步|jìn bù|تقدم|progress|进行|jìn xíng|ينفذ|conduct|禁止|jìn zhǐ|يمنع|forbid|经济|jīng jì|اقتصاد|economy|经历|jīng lì|خبرة|experience|经验|jīng yàn|خبرة|experience|精彩|jīng cǎi|رائع|wonderful|精神|jīng shén|روح|spirit|警察|jǐng chá|شرطة|police|竞争|jìng zhēng|تنافس|compete|竟然|jìng rán|فجأة|unexpectedly|镜子|jìng zi|مرآة|mirror|究竟|jiū jìng|في النهاية|after all|九|jiǔ|تسعة|nine|酒|jiǔ|كحول|alcohol|旧|jiù|قديم|old|救|jiù|ينقذ|save|舅舅|jiù jiu|خال|uncle|句子|jù zi|جملة|sentence|举行|j xíng|يعقد|hold|巨大|jù dà|ضخم|huge|聚集|jù jí|يتجمع|gather|决定|jué dìng|يقرر|decide|绝对|jué duì|مطلق|absolute|角色|jué sè|دور|role|军|jūn|جيش|army|均匀|jūn yún|متساوٍ|even|开玩笑|kāi wán xiào|يمزح|joke|开始|kāi shǐ|يبدأ|start|砍|kǎn|يقطع|chop|看不起|kàn bu qǐ|يحتقر|look down on|看法|kàn fǎ|رأي|view|看|kàn|ينظر|look|考虑|kǎo lǜ|يفكر في|consider|考试|kǎo shì|امتحان|exam|烤|kǎo|يشوي|roast|棵|kē|شجرة|tree|科技|kē jì|تكنولوجيا|technology|可|kě|يمكن|can|可爱|kě ài|لطيف|cute|可怜|kě lián|مسكين|pitiful|可是|kě shì|لكن|but|可惜|kě xī|للأسف|unfortunately|课|kè|درس|lesson|客人|kè rén|ضيف|guest|肯定|kěn dìng|يتأكد|confirm|空|kōng|فارغ|empty|空调|kōng tiáo|تكييف|AC|口|kǒu|فم|mouth|口号|kǒu hào|شعار|slogan|哭|kū|يبكي|cry|苦|kǔ|مر|bitter|裤子|kù zi|بنطلون|pants|夸|kuā|يمدح|praise|会计|kuài jì|محاسب|accountant|快|kuài|سريع|fast|宽|kuān|واسع|wide|款|kuǎn|نمط|style|矿|kuàng|منجم|mine|困|kùn|نعسان|sleepy|困难|kùn nan|صعوبة|difficulty|扩大|kuò dà|يوسع|expand|垃圾|lā jī|قمامة|garbage|拉|lā|يسحب|pull|蜡烛|là zhú|شمعة|candle|辣|là|حار|spicy|来|lái|يأتي|come|懒|lǎn|كسول|lazy|烂|làn|متعفن|rotten|狼|láng|ذئب|wolf|捞|lāo|ينشل|scoop|老|lǎo|قديم|old|老板|lǎo bǎn|مدير|boss|老公|lo gōng|زوج|husband|老婆|lǎo pó|زوجة|wife|老鼠|lǎo shǔ|فأر|mouse|姥姥|lǎo lao|جدة|grandma|乐|lè|سعيد|happy|冷|lěng|بارد|cold|愣|lèng|يتبلد|stunned|离|lí|يبتعد|leave|离开|lí kāi|يغادر|leave|理论|lǐ lùn|نظرية|theory|理由|lǐ yóu|سبب|reason|礼貌|lǐ mào|أدب|politeness|礼物|lǐ wù|هدية|gift|力气|lì qi|قوة|strength|历史|lì shǐ|تاريخ|history|立刻|lì kè|فوراً|immediately|利润|lì rùn|ربح|profit|利益|lì yì|فائدة|benefit|利用|lì yòng|يستفيد|utilize|连|lián|حتى|even|联系|lián xì|يتصل|contact|脸|lin|وجه|face|练习|liàn xí|يتدرب|practice|凉|liáng|بارد|cool|两|ling|اثنان|two|亮|liàng|ساطع|bright|辆|liàng|سيارة|vehicle|了不起|liǎo bu qǐ|رائع|amazing|了解|liǎo jiě|يفهم|understand|列|liè|قائمة|list|临时|lín shí|مؤقت|temporary|邻居|lín jū|جار|neighbor|淋|lín|ينبل|drench|灵|líng|ذكي|smart|零|líng|صفر|zero|另外|lìng wài|إضافة إلى|in addition|留|liú|يبقي|stay|流|liú|يتدفق|flow|留学|liú xué|دراسة بالخارج|study abroad|龙|lóng|تنين|dragon|楼|lóu|مبنى|building|露|lù|يظهر|expose|路|lù|طريق|road|录音|lù yīn|يسجل صوت|record|陆地|lù dì|يابسة|land|旅馆|lǚ guǎn|فندق|hotel|旅游|l yóu|سياحة|travel|律师|lǜ shī|محامي|lawyer|绿|lǜ|أخضر|green|乱|luàn|فوضى|mess|轮船|lún chuán|سفينة|ship|论坛|lùn tán|منتدى|forum|讨论|tǎo lùn|يناقش|discuss|落|luò|يسقط|fall|妈妈|mā ma|أمي|mom|麻|má|خدر|numb|麻烦|má fan|مشكلة|trouble|马|mǎ|حصان|horse|骂|mà|يشتم|scold|埋|mái|يدفن|bury|买|mǎi|يشتري|buy|卖|mài|يبيع|sell|满|mǎn|ممتلئ|full|慢|màn|بطيء|slow|忙|máng|مشغول|busy|猫|māo|قطة|cat|矛盾|máo dùn|تناقض|contradiction|毛巾|máo jīn|منشفة|towel|冒|mào|يغامر|venture|矛盾|máo dùn|تناقض|conflict|枚|méi|مقياس|measure word|没关系|méi guān xi|لا بأس|no problem|媒体|méi tǐ|إعلام|media|门|mén|باب|door|闷|mēn|خانق|stuffy|梦想|mèng xiǎng|حلم|dream|米|m|أرز/متر|rice/meter|秘密|mì mì|سر|secret|面包|miàn bāo|خبز|bread|面条|miàn tiáo|نودلز|noodles|面对|miàn duì|يواجه|face|秒|miǎo|ثانية|second|描述|miáo shù|يصف|describe|民族|mín zú|قومية|ethnic|明天|míng tiān|غداً|tomorrow|命令|mìng lìng|أمر|order|摸|mō|يلمس|touch|模特|mó tè|عارضة|model|磨|mó|يطحن|grind|蘑菇|mó gu|فطر|mushroom|魔鬼|mó guǐ|شيطان|devil|魔术|mó shù|سحر|magic|陌生|mò shēng|غريب|stranger|某|mǒu|معين|certain|母亲|mǔ qīn|أم|mother|目标|mù biāo|هدف|goal|目录|mù lù|فهرس|catalog|拿|ná|يأخذ|take|哪|nǎ|أي|which|哪怕|nǎ pà|حتى لو|even if|奶|nǎi|حليب|milk|奶奶|nǎi nai|جدة|grandma|耐|nài|صبر|endure|男|nán|رجل|male|难|nán|صعب|difficult|难过|nán guò|حزين|sad|难受|nán shòu|غير مريح|uncomfortable|内部|nèi bù|داخلي|internal|能|néng|يستطيع|can|能量|néng liàng|طاقة|energy|嗯|èn|همم|um|年代|nián dài|عقد|decade|年轻|nián qīng|شاب|young|鸟|niǎo|عصفور|bird|弄|nòng|يفعل|do|农|nóng|زراعة|agriculture|暖和|nuǎn huo|دافئ|warm|女|nǚ|امرأة|female|努力|nǔ lì|يجتهد|work hard|哦|ò|أوه|oh|偶|ǒu|زوجي|偶|偶尔|ǒu ěr|أحياناً|occasionally|爬|pá|يتسلق|climb|怕|pà|يخاف|afraid|拍|pāi|يصفق|clap|排|pái|صف|row|排列|pái liè|ترتيب|arrange|派|pài|يرسل|send|判断|pàn duàn|يحكم|judge|旁|páng|جانب|side|胖|pàng|سمين|fat|跑|pǎo|يركض|run|泡|pào|ينقع|soak|陪|péi|يرافق|accompany|配|pèi|يطابق|match|朋友|péng you|صديق|friend|碰|pèng|يصادف|bump|批|pī|دفعة|batch|批准|pī zhǔn|يوافق|approve|披|pī|يلبس|drape|皮|pí|جلد|skin|脾气|pí qi|مزاج|temper|匹|pǐ|مقياس|measure word|片|piàn|قطعة|slice|骗|piàn|يخدع|cheat|飘|piāo|يطير|float|票|piào|تذكرة|ticket|拼|pīn|يجمع|piece together|贫|pín|فقير|poor|品|pǐn|منتج|product|平|píng|مسطح|flat|平安|píng ān|سلام|peace|平均|píng jūn|متوسط|average|平静|píng jìng|هادئ|calm|平时|píng shí|عادة|usually|凭|píng|يعتمد على|rely on|坡|pō|منحدر|slope|破|pò|مكسور|broken|迫|pò|يجبر|force|扑|pū|ينقض|pounce|铺|pū|يفرش|spread|普通|pǔ tōng|عادي|ordinary|七|qī|سبعة|seven|期|qī|فترة|period|其实|qí shí|في الواقع|actually|其他|qí tā|آخر|other|奇怪|qí guài|عجيب|strange|骑|qí|يركب|ride|起|qǐ|ينشأ|arise|起来|qǐ lái|يقوم|get up|起源|qǐ yuán|أصل|origin|气|qì|هواء|air|汽车|qì chē|سيارة|car|气氛|qì fēn|جو|atmosphere|气体|qì tǐ|غاز|gas|器|qì|أداة|tool|千万|qiān wàn|بلايين|ten million|铅|qiān|رصاص|lead|牵|qiān|يسحب|pull|签|qiān|يوقع|sign|前|qián|أمام|front|前进|qián jìn|يتقدم|advance|前面|qián miàn|أمام|front|钱|qián|مال|money|浅|qiǎn|ضحل|shallow|欠|qiàn|يدين|owe|枪|qiāng|مسدس|gun|强|qiáng|قوي|strong|墙|qiáng|جدار|wall|抢|qiǎng|يخطف|snatch|敲|qiāo|يطرق|knock|桥|qiáo|جسر|bridge|巧克力|qiǎo kè lì|شوكولاتة|chocolate|切|qiē|يقطع|cut|且|qiě|و|and|亲|qīn|قريب|relative|亲切|qīn qiè|حميمي|intimate|青春|qīng chūn|شباب|youth|轻松|qīng sōng|مسترخي|relaxed|清|qīng|واضح|clear|清楚|qīng chu|واضح|clear|晴|qíng|مشمس|sunny|请|qǐng|من فضلك|please|穷|qióng|فقير|poor|秋天|qiū tiān|خريف|autumn|球|qiú|كرة|ball|请求|qǐng qiú|يطلب|request|区分|qū fēn|يميز|distinguish|趋势|qū shì|اتجاه|trend|取|qǔ|يأخذ|take|去世|qù shì|يتوفى|pass away|圈|quān|دائرة|circle|全|quán|كل|all|全面|quán miàn|شامل|comprehensive|权力|quán lì|سلطة|power|权|quán|حق|right|劝|quàn|ينصح|advise|缺|quē|ينقص|lack|确定|què dìng|يؤكد|confirm|群|qún|مجموعة|group|然|rán|كذلك|so|燃烧|rán shāo|يحترق|burn|让|ràng|يسمح|let|热闹|rè nao|صاخب|lively|热情|rè qíng|حماسي|enthusiastic|热|rè|حار|hot|人才|rén cái|موهبة|talent|人口|rén kǒu|سكان|population|人类|rén lèi|بشرية|mankind|人民|rén mín|شعب|people|人生|rén shēng|حياة|life|人物|rén wù|شخصية|character|人员|rén yuán|موظفون|staff|认识|rèn shi|يعرف|know|认为|rèn wéi|يعتقد|think|认真|rèn zhēn|جاد|serious|任何|rèn hé|أي|any|任务|rèn wu|مهمة|task|扔|rēng|يرمي|throw|仍然|réng rán|ما زال|still|日常|rì cháng|يومي|daily|日期|rì qī|تاريخ|date|日记|rì jì|مذكرة|diary|日子|rì zi|يوم|day|如何|rú hé|كيف|how|如果|rú guǒ|إذا|if|入口|rù kǒu|مدخل|entrance|软|ruǎn|ناعم|soft|弱|ruò|ضعيف|weak|撒|sā|ينثر|sprinkle|三|sān|ثلاثة|three|伞|sǎn|مظلة|umbrella|散|sàn|يتفرق|scatter|嗓子|sǎng zi|حلق|throat|扫|sǎo|يكنس|sweep|色|sè|لون|color|森林|sēn lín|غابة|forest|杀|shā|يقتل|kill|傻|shǎ|أحمق|foolish|晒|shài|يجفف بالشمس|sun-dry|删除|shān chú|يحذف|delete|山|shān|جبل|mountain|衫|shān|قميص|shirt|闪|shn|وميض|flash|善|shàn|خير|good|伤|shāng|جرح|injury|商品|shāng pǐn|سلعة|goods|商店|shāng diàn|متجر|shop|商务|shāng wù|تجارة|business|上|shàng|فوق|up|上午|shàng wǔ|صباح|morning|尚|shàng|لا يزال|still|少|shǎo|قليل|few|稍微|shāo wēi|قليلاً|slightly|勺|sháo|ملعقة|spoon|社会|shè huì|مجتمع|society|设计|shè jì|ي設計|design|设置|shè zhì|يضبط|set up|射击|shè jī|يطلق النار|shoot|伸|shēn|يمد|extend|深|shēn|عميق|deep|身体|shēn tǐ|جسم|body|神|shén|إله|god|什么|shén me|ماذا|what|审|shěn|يراجع|review|甚|shèn|حتى|even|生存|shēng cún|يعيش|survive|生长|shēng zhng|ينمو|grow|生产|shēng chǎn|ينتج|produce|生活|shēng huó|حياة|life|生命|shēng mìng|حياة|life|生日|shēng rì|عيد ميلاد|birthday|生气|shēng qì|يغضب|angry|声|shēng|صوت|sound|绳|shéng|حبل|rope|省|shěng|مقاطعة|province|剩|shèng|يتبقى|remain|胜利|shèng lì|انتصار|victory|师|shī|معلم|teacher|诗|shī|شعر|poetry|失|shī|يفقد|lose|失眠|shī mián|أرق|insomnia|十|shí|عشرة|ten|石头|shí tou|حجر|stone|时|shí|وقت|time|时候|shí hou|وقت|time|实在|shí zài|حقاً|really|使|shǐ|يجعل|make|始|shǐ|يبدأ|start|世纪|shì jì|قرن|century|世界|shì jiè|عالم|world|事|shì|شيء|thing|试|shì|يحاول|try|市|shì|مدينة|city|是|shì|يكون|is|适合|shì hé|يناسب|suit|手|shǒu|يد|hand|手表|shǒu biǎo|ساعة يد|watch|手机|shǒu jī|محمول|mobile|手指|shǒu zhǐ|إصبع|finger|守|shǒu|يحرس|guard|首|shu|أول|first|受|shòu|يتلقى|receive|瘦|shòu|نحيف|thin|书|shū|كتاب|book|叔|shū|عم|uncle|舒服|shū fu|مريح|comfortable|输|shū|يخسر|lose|熟|shú|ناضج|ripe|属|shǔ|ينتمي إلى|belong to|数|shù|رقم|number|树|shù|شجرة|tree|双|shuāng|زوج|pair|水|shu|ماء|water|水果|shuǐ guǒ|فاكهة|fruit|水平|shuǐ píng|مستوى|level|睡|shuì|ينام|sleep|说|shuō|يقول|speak|丝|sī|حرير|silk|私人|sī rén|خاص|private|死|sǐ|يموت|die|四|sì|أربعة|four|似|sì|يشبه|like|酸|suān|حامض|sour|算|suàn|يحسب|calculate|岁|suì|عمر|age|虽然|suī rán|رغم أن|although|随|suí|يتبع|follow|碎|suì|مكسور|broken|孙|sūn|حفيد|grandson|所|suǒ|مكان|place|所以|suǒ yǐ|لذلك|so|锁|suǒ|قفل|lock|他|tā|هو|he|她|tā|هي|she|它|tā|هو (غير عاقل)|it|台|tái|منصة|platform|太|tài|جداً|too|态度|tài du|موقف|attitude|谈|tán|يتحدث|talk|弹|tán|يعزف|play|汤|tāng|حساء|soup|糖|táng|سكر|sugar|躺|tǎng|يستلقي|lie down|烫|tàng|يُحرق|burn|逃|táo|يهرب|escape|讨|to|يطلب|demand|套|tào|مجموعة|set|特|tè|خاص|special|提|tí|يرفع|lift|题|tí|سؤال|question|体|tǐ|جسم|body|天气|tiān qì|طقس|weather|甜|tián|حلو|sweet|条|tiáo|شريط|strip|跳|tiào|يقفز|jump|听|tīng|يسمع|listen|厅|tīng|قاعة|hall|停|tíng|يتوقف|stop|挺|tǐng|جداً|quite|通|tōng|يمر|pass|通过|tōng guò|يعبر|pass through|统一|tǒng yī|موحد|unified|痛|tòng|يؤلم|hurt|头|tóu|رأس|head|投|tóu|يرمي|throw|透|tòu|شفاف|transparent|突|tū|فجأة|sudden|图|tú|صورة|picture|土|tǔ|تراب|soil|吐|tǔ|يتقيأ|vomit|团|tuán|فريق|group|推|tuī|يدفع|push|退|tuì|ينسحب|retreat|脱|tuō|يخلع|take off|挖|wā|يحفر|dig|外|wài|خارج|outside|弯|wān|منحني|bend|完|wán|ينتهي|finish|玩|wán|يلعب|play|碗|wn|وعاء|bowl|万|wàn|عشرة آلاف|ten thousand|王|wáng|ملك|king|往|wǎng|إلى|towards|忘|wàng|ينسى|forget|危险|wēi xiǎn|خطر|danger|微|wēi|دقيق|micro|为|wèi|لأجل|for|围|wéi|يحيط|surround|唯一|wéi yī|وحيد|unique|伟|wěi|عظيم|great|尾|wěi|ذيل|tail|委|wěi|يعهد|entrust|味|wèi|طعم|taste|位|wèi|موضع|position|未|wèi|لم بعد|not yet|喂|wèi|مرحباً|hello|温|wēn|دافئ|warm|文|wén|نص|text|问|wèn|يسأل|ask|翁|wēng|رجل مسن|old man|我|wǒ|أنا|I|我们|wǒ men|نحن|we|握|wò|يمسك|grip|乌|wū|أسود|black|屋|wū|غرفة|room|无|wú|بدون|without|五|wǔ|خمسة|five|舞|wǔ|يرقص|dance|务|wù|مهمة|task|物|wù|شيء|thing|误|wù|خطأ|mistake|夕|xī|مساء|evening|西|xī|غرب|west|吸|xī|يمتص|absorb|希|xī|يأمل|hope|惜|xī|يقدّر|cherish|息|xī|نفس|breath|习|xí|يتعلم|learn|洗|xǐ|يغسل|wash|喜|xǐ|سعيد|happy|戏|xì|لعبة|play|系|xì|ربط|tie|细|xì|رفيع|thin|虾|xiā|جمبري|shrimp|瞎|xiā|أعمى|blind|下|xià|تحت|down|仙|xiān|خالدة|immortal|先|xiān|أولاً|first|鲜|xiān|طازج|fresh|闲|xián|فارغ|idle|显|xiǎn|يظهر|show|线|xiàn|خط|line|限|xiàn|حد|limit|相|xiāng|متبادل|mutual|乡|xiāng|قرية|village|香|xiāng|عطري|fragrant|箱|xiāng|صندوق|box|想|xiǎng|يفكر|think|像|xiàng|يشبه|like|向|xiàng|نحو|toward|项|xiàng|بند|item|象|xiàng|فيل|elephant|消|xiāo|يختفي|disappear|小|xiǎo|صغير|small|孝|xiào|بر بالوالدين|filial|校|xiào|مدرسة|school|笑|xiào|يضحك|laugh|些|xiē|بعض|some|写|xiě|يكتب|write|谢|xiè|يشكر|thank|心|xīn|قلب|heart|新|xīn|جديد|new|信|xìn|رسالة|letter|星|xīng|نجمة|star|行|xíng|يسير|walk|形|xíng|شكل|shape|醒|xǐng|يستيقظ|wake|姓|xìng|لقب|surname|幸|xìng|سعيد|lucky|性|xìng|طبيعة|nature|凶|xiōng|شرس|fierce|兄|xiōng|أخ أكبر|brother|休|xiū|يستريح|rest|秀|xiù|جميل|beautiful|袖|xiù|كم|sleeve|虚|xū|فارغ|empty|需|xū|يحتاج|need|许|x|يسمح|allow|序|xù|ترتيب|order|续|xù|يكمل|continue|宣|xuān|يعلن|declare|学|xué|يتعلم|study|雪|xuě|ثلج|snow|寻|xún|يبحث|search|训|xùn|يدرب|train|压|yā|يضغط|press|鸭|yā|بطة|duck|牙|yá|سن|tooth|芽|yá|برعم|bud|亚|yà|آسيا|Asia|烟|yān|دخان|smoke|延|yán|يمدد|extend|严|yán|صارم|strict|言|yán|كلام|speech|盐|yán|ملح|salt|眼|yn|عين|eye|演|yn|يمثل|perform|厌|yàn|يمل|dislike|验|yàn|يختبر|test|央|yāng|مركز|center|羊|yáng|خروف|sheep|阳|yáng|شمس|sun|养|yǎng|يربي|raise|样|yàng|شكل|appearance|腰|yāo|خصر|waist|摇|yáo|يهز|shake|咬|yǎo|يعض|bite|要|yào|يريد|want|爷|yé|جد|grandpa|也|yě|أيضاً|also|业|yè|عمل|business|夜|yè|ليل|night|液|yè|سائل|liquid|一|yī|واحد|one|医|yī|طب|medicine|衣|yī|ملابس|clothes|依|yī|يعتمد|depend|仪|yí|جهاز|instrument|宜|yí|مناسب|suitable|移|yí|ينقل|move|疑|yí|يشك|doubt|以|yǐ|بـ|by|已|yǐ|بالفعل|already|亿|yì|مائة مليون|hundred million|义|yì|عدالة|justice|议|yì|يناقش|discuss|异|yì|مختلف|different|艺|yì|فن|art|因|yīn|لأن|because|阴|yīn|ظل|shade|音|yīn|صوت|sound|银|yín|فضة|silver|引|yǐn|يجذب|attract|印|yìn|يطبع|print|英|yīng|إنجليزي|English|迎|yíng|يستقبل|welcome|影|yǐng|ظل|shadow|映|yìng|يعكس|reflect|硬|yìng|صلب|hard|拥|yōng|يمتلك|own|永|yǒng|أبدي|eternal|勇|yng|شجاع|brave|用|yòng|يستخدم|use|优|yōu|ممتاز|excellent|忧|yōu|قلق|worry|由|yóu|بسبب|due to|油|yóu|زيت|oil|游|yóu|يسبح|swim|有|yǒu|لديه|have|友|yǒu|صديق|friend|右|yòu|يمين|right|幼|yòu|صغير|young|鱼|yú|سمك|fish|娱|yú|ترفيه|entertainment|雨|yǔ|مطر|rain|语|yǔ|لغة|language|玉|yù|يشم|jade|育|yù|يربي|nurture|预|yù|يتنبأ|predict|元|yuán|يوان|yuan|原|yuán|أصلي|original|圆|yuán|دائرة|circle|远|yuǎn|بعيد|far|愿|yuàn|يرغب|wish|院|yuàn|معهد|institute|月|yuè|قمر|moon|越|yuè|كلما|more|云|yún|سحابة|cloud|运|yùn|ينقل|transport|再|zài|مرة أخرى|again|在|zài|في|at|赞|zàn|يمدح|praise|脏|zāng|وسخ|dirty|早|zǎo|مبكر|early|造|zào|يصنع|make|则|zé|قاعدة|rule|责|zé|مسؤولية|responsibility|怎|zěn|كيف|how|增|zēng|يزيد|increase|炸|zhà|يقلي|fry|摘|zhāi|يقطف|pick|占|zhàn|يحتل|occupy|站|zhàn|محطة|station|张|zhāng|مقياس|measure word|章|zhāng|فصل|chapter|长|zhǎng|ينمو|grow|找|zhǎo|يبحث|search|召|zhào|يستدعي|summon|照|zhào|يضيء|shine|遮|zhē|يغطي|cover|折|zhé|يطوي|fold|真|zhēn|حقيقي|true|针|zhēn|إبرة|needle|珍|zhēn|ثمين|precious|阵|zhèn|موجة|wave|争|zhēng|يتنافس|compete|整|zhěng|كامل|whole|正|zhèng|صحيح|correct|证|zhèng|دليل|proof|支|zhī|يدعم|support|知|zhī|يعرف|know|直|zhí|مستقيم|straight|只|zh|فقط|only|指|zh|يشير|point|纸|zhǐ|ورق|paper|至|zhì|إلى|to|志|zhì|إرادة|will|制|zhì|يصنع|make|治|zhì|يعالج|treat|中|zhōng|وسط|middle|终|zhōng|نهاية|end|种|zhng|نوع|kind|重|zhòng|ثقيل|heavy|周|zhōu|أسبوع|week|州|zhōu|ولاية|state|猪|zhū|خنزير|pig|竹|zhú|خيزران|bamboo|主|zhǔ|رئيسي|main|住|zhù|يسكن|live|注|zhù|يركز|focus|祝|zhù|يتمنى|wish|抓|zhuā|يمسك|grab|专|zhuān|متخصص|specialized|转|zhuǎn|يدور|turn|装|zhuāng|يثبت|install|壮|zhuàng|قوي|strong|追|zhuī|يطارد|chase|准|zhǔn|دقيق|accurate|桌|zhuō|طاولة|table|着|zhe|أداة|particle|自|zì|نفس|self|字|zì|حرف|character|宗|zōng|طائفة|sect|总|zǒng|مجموع|total|走|zǒu|يمشي|walk|租|zū|يستأجر|rent|阻|zǔ|يمنع|prevent|组|zǔ|مجموعة|group|嘴|zuǐ|فم|mouth|最|zuì|الأكثر|most|罪|zuì|جريمة|crime|醉|zuì|سكران|drunk|尊|zūn|محترم|respect|昨|zuó|أمس|yesterday|左|zuǒ|يسار|left|做|zuò|يعمل|do|坐|zuò|يجلس|sit|座|zuò|مقعد|seat`
+        };
+
+        // ==================== PARSE VOCABULARY ====================
+        function parseVocab() {
+            const result = {};
+            for (const [level, data] of Object.entries(VOCAB_DATA)) {
+                const parts = data.split('|');
+                result[level] = [];
+                for (let i = 0; i < parts.length; i += 4) {
+                    if (parts[i] && parts[i+1] && parts[i+2] && parts[i+3]) {
+                        result[level].push({
+                            char: parts[i],
+                            pinyin: parts[i+1],
+                            arabic: parts[i+2],
+                            english: parts[i+3]
+                        });
+                    }
+                }
+            }
+            return result;
+        }
+
+        const hskVocab = parseVocab();
+        
+        // ==================== APP STATE ====================
+        let currentUser = null;
+        const users = { 
+            'omar': { password: 'omar17', isAdmin: true, name: 'عمر (Admin)' }, 
+            'user': { password: '123', isAdmin: false, name: 'مستخدم' } 
+        };
+        let currentWriter = null;
+        let learnedWords = new Set();
+        let quizConfig = { count: 10, timer: 5, lang: 'ar', mode: 'hanzi', level: 'all' };
+        let quizQuestions = [];
+        let currentQIndex = 0;
+        let quizScore = 0;
+        let timerInterval = null;
+        let timeLeft = 0;
+
+        // ==================== LOGIN SYSTEM ====================
+        window.onload = function() {
+            const saved = localStorage.getItem('hsk_user');
+            if (saved) { currentUser = saved; showMainApp(); }
+        };
+
+        function login() {
+            const u = document.getElementById('usernameInput').value.trim().toLowerCase();
+            const p = document.getElementById('passwordInput').value.trim();
+            if (users[u] && users[u].password === p) {
+                currentUser = u;
+                localStorage.setItem('hsk_user', u);
+                showMainApp();
+            } else { 
+                document.getElementById('loginError').style.display = 'block';
+                setTimeout(() => document.getElementById('loginError').style.display = 'none', 3000);
+            }
+        }
+
+        function showMainApp() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            document.getElementById('userNameDisplay').textContent = users[currentUser].name;
+            if (users[currentUser].isAdmin) document.getElementById('adminNav').style.display = 'flex';
+            renderDashboard();
+            updateStats();
+        }
+
+        function logout() { 
+            currentUser = null; 
+            localStorage.removeItem('hsk_user'); 
+            location.reload(); 
+        }
+
+        // ==================== NAVIGATION ====================
+        function switchView(id) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            if (id === 'vocab') document.getElementById('vocab').classList.add('active');
+            else document.getElementById(id).classList.add('active');
+            const titles = { 'home': 'الرئيسية', 'dashboard': 'المستويات', 'admin': 'لوحة التحكم', 'leaderboard': 'قاعة الشرف' };
+            document.getElementById('pageTitle').textContent = titles[id] || 'المكتبة';
+        }
+
+        // ==================== DASHBOARD ====================
+        function renderDashboard() {
+            const c = document.getElementById('levelsContainer'); 
+            c.innerHTML = '';
+            const levelNames = ['مبتدئ','مبتدئ متقدم','متوسط','متوسط متقدم','متقدم','متقدم جداً'];
+            const levelTotals = [150, 300, 600, 1200, 2500, 5000];
+            for (let i = 1; i <= 6; i++) {
+                const lvl = hskVocab[i] || [];
+                const prog = Math.min(100, Math.floor((lvl.length/levelTotals[i-1])*100));
+                c.innerHTML += `
+                    <div class="hsk-card">
+                        <div class="hsk-header">
+                            <div><h3>المستوى ${i}</h3><small style="color:#999">${levelNames[i-1]}</small></div>
+                            <div class="hsk-level-badge" style="background:var(--hsk${i})">HSK</div>
+                        </div>
+                        <div style="font-size:0.85rem; color:#666; margin-bottom:8px;">📚 ${levelTotals[i-1]} كلمة</div>
+                        <div style="display:flex; justify-content:space-between; font-size:0.75rem;"><span>التقدم</span><span>${prog}%</span></div>
+                        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${prog}%; background:var(--hsk${i})"></div></div>
+                        <button class="btn btn-outline" style="width:100%; margin-top:12px;" onclick="loadVocab(${i})">دخول</button>
+                    </div>`;
+            }
+        }
+
+        // ==================== VOCABULARY ====================
+        function loadVocab(level) {
+            switchView('vocab');
+            document.getElementById('vocabLevelTitle').textContent = `مفردات HSK ${level}`;
+            const c = document.getElementById('vocabContainer'); 
+            c.innerHTML = '';
+            const words = hskVocab[level] || [];
+            if (!words.length) { c.innerHTML = '<p style="text-align:center; width:100%; color:#999;">جاري تحميل البيانات...</p>'; return; }
+            words.forEach((w, i) => {
+                c.innerHTML += `
+                    <div class="vocab-card" data-search="${w.char.toLowerCase()} ${w.pinyin.toLowerCase()} ${w.arabic} ${w.english.toLowerCase()}">
+                        <div class="char-display">${w.char}</div>
+                        <div class="pinyin-display">${w.pinyin}</div>
+                        <div class="arabic-meaning">${w.arabic} / ${w.english}</div>
+                        <div class="card-actions">
+                            <span class="action-btn" onclick="playAudio('${w.pinyin}')" title="استمع"></span>
+                            <span class="action-btn" onclick="openWriter('${w.char}')" title="كتابة">✍️</span>
+                            <span class="action-btn" onclick="markLearned('${w.char}')" title="تعلمت">✅</span>
+                        </div>
+                    </div>`;
+            });
+            document.getElementById('vocabSearch').oninput = function() {
+                const q = this.value.toLowerCase();
+                document.querySelectorAll('.vocab-card').forEach(card => {
+                    card.style.display = card.dataset.search.includes(q) ? '' : 'none';
+                });
+            };
+        }
+
+        function playAudio(p) { 
+            const u = new SpeechSynthesisUtterance(p); 
+            u.lang = 'zh-CN'; 
+            speechSynthesis.speak(u); 
+        }
+
+        function markLearned(char) { 
+            learnedWords.add(char); 
+            updateStats(); 
+            // Visual feedback
+            event.target.style.color = '#27ae60';
+        }
+
+        function updateStats() {
+            document.getElementById('learnedCount').textContent = learnedWords.size;
+            document.getElementById('progressPercent').textContent = Math.floor((learnedWords.size/9750)*100) + '%';
+        }
+
+        // ==================== HANZI WRITER ====================
+        function openWriter(char) {
+            document.getElementById('writerModal').style.display = 'flex';
+            document.getElementById('writerCharTitle').textContent = char;
+            if (currentWriter) currentWriter.destroy();
+            currentWriter = HanziWriter.create('writer-target', char, { 
+                width:280, height:280, padding:5, showOutline:true, 
+                strokeAnimationSpeed:1, delayBetweenStrokes:200, radicalColor:'#DE2910' 
+            });
+            currentWriter.animateCharacter();
+        }
+
+        function animateWriter() { 
+            if(currentWriter) currentWriter.animateCharacter(); 
+        }
+
+        function closeWriter() { 
+            document.getElementById('writerModal').style.display = 'none'; 
+        }
+
+        // ==================== ADVANCED QUIZ ENGINE ====================
+        function setConfig(key, value, btn) {
+            quizConfig[key] = value;
+            btn.parentElement.querySelectorAll('.btn').forEach(b => { 
+                b.classList.remove('active-state'); 
+            });
+            btn.classList.add('active-state');
+        }
+
+        function openQuizSettings() { 
+            document.getElementById('quizSettingsModal').style.display = 'flex'; 
+        }
+
+        function closeQuizSettings() { 
+            document.getElementById('quizSettingsModal').style.display = 'none'; 
+        }
+
+        function beginQuiz() {
+            closeQuizSettings();
+            
+            // Get word pool based on selected level
+            let allWords = [];
+            if (quizConfig.level === 'all') {
+                allWords = Object.values(hskVocab).flat();
+            } else {
+                allWords = hskVocab[quizConfig.level] || [];
+            }
+
+            // Select random questions
+            quizQuestions = allWords.sort(() => 0.5 - Math.random()).slice(0, quizConfig.count);
+            currentQIndex = 0;
+            quizScore = 0;
+            
+            document.getElementById('quizContent').style.display = 'block';
+            document.getElementById('quizResult').style.display = 'none';
+            document.getElementById('quizModal').style.display = 'block';
+            document.getElementById('quizScore').textContent = 'النتيجة: 0';
+            
+            showQuestion();
+        }
+
+        function showQuestion() {
+            if (currentQIndex >= quizQuestions.length) { endQuiz(); return; }
+            
+            const q = quizQuestions[currentQIndex];
+            document.getElementById('quizProgress').textContent = `سؤال ${currentQIndex + 1} / ${quizQuestions.length}`;
+            
+            const qDisp = document.getElementById('qDisplay');
+            const pDisp = document.getElementById('pDisplay');
+            
+            if (quizConfig.mode === 'hanzi') {
+                qDisp.textContent = q.char;
+                qDisp.style.fontFamily = "'Noto Sans SC', sans-serif";
+                pDisp.textContent = quizConfig.timer === 0 ? q.pinyin : '';
+            } else {
+                qDisp.textContent = q.pinyin;
+                qDisp.style.fontFamily = "inherit";
+                pDisp.textContent = q.char;
+            }
+
+            const correctMean = quizConfig.lang === 'ar' ? q.arabic : q.english;
+            let opts = [correctMean];
+            
+            // Get distractors from same level or all
+            let pool = quizConfig.level === 'all' ? Object.values(hskVocab).flat() : (hskVocab[quizConfig.level] || []);
+            while (opts.length < 4) {
+                const rand = pool[Math.floor(Math.random() * pool.length)];
+                const randMean = quizConfig.lang === 'ar' ? rand.arabic : rand.english;
+                if (!opts.includes(randMean)) opts.push(randMean);
+            }
+            opts.sort(() => 0.5 - Math.random());
+
+            const optsCont = document.getElementById('qOptions');
+            optsCont.innerHTML = '';
+            opts.forEach(o => {
+                const d = document.createElement('div');
+                d.className = 'quiz-option';
+                d.textContent = o;
+                d.onclick = () => handleAnswer(d, o, correctMean);
+                optsCont.appendChild(d);
+            });
+
+            // Timer
+            clearInterval(timerInterval);
+            const timerEl = document.getElementById('timerDisplay');
+            if (quizConfig.timer > 0) {
+                timeLeft = quizConfig.timer;
+                timerEl.style.display = 'block';
+                timerEl.textContent = `⏱️ ${timeLeft}s`;
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    timerEl.textContent = `️ ${timeLeft}s`;
+                    if (timeLeft <= 0) { 
+                        clearInterval(timerInterval); 
+                        handleTimeout(); 
+                    }
+                }, 1000);
+            } else {
+                timerEl.style.display = 'none';
+            }
+        }
+
+        function handleTimeout() {
+            const q = quizQuestions[currentQIndex];
+            const correctMean = quizConfig.lang === 'ar' ? q.arabic : q.english;
+            document.querySelectorAll('.quiz-option').forEach(o => {
+                o.style.pointerEvents = 'none';
+                if (o.textContent === correctMean) o.classList.add('correct');
+                else o.classList.add('wrong');
+            });
+            setTimeout(() => { currentQIndex++; showQuestion(); }, 1500);
+        }
+
+        function handleAnswer(el, selected, correct) {
+            clearInterval(timerInterval);
+            document.querySelectorAll('.quiz-option').forEach(o => o.style.pointerEvents = 'none');
+            
+            if (selected === correct) { 
+                el.classList.add('correct'); 
+                quizScore++; 
+                document.getElementById('quizScore').textContent = `النتيجة: ${quizScore}`;
+            } else {
+                el.classList.add('wrong');
+                document.querySelectorAll('.quiz-option').forEach(o => { 
+                    if(o.textContent === correct) o.classList.add('correct'); 
+                });
+            }
+            setTimeout(() => { currentQIndex++; showQuestion(); }, 1000);
+        }
+
+        function endQuiz() {
+            document.getElementById('quizContent').style.display = 'none';
+            document.getElementById('quizResult').style.display = 'block';
+            document.getElementById('finalScore').textContent = `${quizScore} / ${quizQuestions.length}`;
+            
+            const pct = (quizScore / quizQuestions.length) * 100;
+            let emoji, title, msg;
+            if (pct >= 90) { emoji = '🏆'; title = 'ممتاز!'; msg = 'أداء رائع! أنت متميز!'; }
+            else if (pct >= 70) { emoji = '🎉'; title = 'جيد جداً!'; msg = 'أداء جيد، واصل التعلم!'; }
+            else if (pct >= 50) { emoji = '👍'; title = 'جيد'; msg = 'لا بأس، تحتاج للمزيد من الممارسة'; }
+            else { emoji = ''; title = 'حاول مرة أخرى'; msg = 'لا تستسلم! الممارسة تصنع المعجزات'; }
+            
+            document.getElementById('resultEmoji').textContent = emoji;
+            document.getElementById('resultTitle').textContent = title;
+            document.getElementById('resultMsg').textContent = msg;
+        }
+
+        function closeQuiz() {
+            document.getElementById('quizModal').style.display = 'none';
+            clearInterval(timerInterval);
+            switchView('home');
+        }
+
+        // Enter key for login
+        document.addEventListener('keypress', e => { 
+            if (e.key === 'Enter' && !document.getElementById('loginScreen').classList.contains('hidden')) {
+                login();
+            }
+        });
+    </script>
+</body>
+</html>
