@@ -146,6 +146,11 @@
         .otp-inputs { display: flex; gap: 10px; justify-content: center; margin: 20px 0; }
         .otp-input { width: 50px; height: 50px; text-align: center; font-size: 1.5rem; border: 2px solid #ddd; border-radius: 8px; }
         .otp-input:focus { outline: none; border-color: var(--primary-red); }
+        
+        /* Voice Feedback */
+        .voice-feedback { margin-top: 15px; padding: 10px; border-radius: 8px; font-weight: bold; }
+        .voice-correct { background: #d4edda; color: #155724; }
+        .voice-wrong { background: #f8d7da; color: #721c24; }
     </style>
 </head>
 <body>
@@ -401,16 +406,14 @@
 
     <script>
         // ==================== FIREBASE CONFIGURATION ====================
-        // ⚠️ هام: استبدل هذا الجزء بإعداداتك من Firebase Console
         const firebaseConfig = {
-             apiKey: "AIzaSyDhsLAVfRamuK4ulQNM7NQadbjnZb1ahZU",
-  authDomain: "omar-hsk-hub.firebaseapp.com",
-  projectId: "omar-hsk-hub",
-  storageBucket: "omar-hsk-hub.firebasestorage.app",
-  messagingSenderId: "548719962218",
-  appId: "1:548719962218:web:f5fe7fe0a6a1c35412c213",
- 
-           
+          apiKey: "AIzaSyDhsLAVfRamuK4ulQNM7NQadbjnZb1ahZU",
+          authDomain: "omar-hsk-hub.firebaseapp.com",
+          projectId: "omar-hsk-hub",
+          storageBucket: "omar-hsk-hub.firebasestorage.app",
+          messagingSenderId: "548719962218",
+          appId: "1:548719962218:web:f5fe7fe0a6a1c35412c213",
+          measurementId: "G-SEBF6XVPQD"
         };
 
         // Initialize Firebase
@@ -551,15 +554,17 @@
             const email = document.getElementById('forgotEmail').value;
             if (!email) { showError("أدخل البريد الإلكتروني أولاً"); return; }
 
+            // Check if user exists
             auth.fetchSignInMethodsForEmail(email).then(methods => {
                 if (methods.length === 0) {
-                    showError("لا يوجد حساب مرتبط بهذا البريد");
+                    showError("لا يوجد حساب مرتبط بهذا البريد الإلكتروني. تأكد من إدخال البريد الصحيح.");
                     return;
                 }
 
+                // Generate random 6-digit code
                 otpCodeGenerated = Math.floor(100000 + Math.random() * 900000).toString();
                 
-                // SIMULATION: In production, call a Cloud Function here to send email via SendGrid/Mailgun
+                // SIMULATION: Show OTP in alert for demo purposes
                 alert(`[SIMULATION] رمز التحقق هو: ${otpCodeGenerated}\n(في النسخة النهائية، سيصلك هذا الرمز على إيميلك)`);
                 console.log("OTP Code:", otpCodeGenerated);
 
@@ -577,7 +582,7 @@
                 document.getElementById('otpForm').style.display = 'none';
                 document.getElementById('resetPasswordForm').style.display = 'block';
             } else {
-                showError("رمز التحقق غير صحيح");
+                showError("رمز التحقق غير صحيح. حاول مرة أخرى.");
             }
         }
 
@@ -606,7 +611,6 @@
         // ==================== VOCABULARY & DASHBOARD ====================
         const VOCAB_DATA = {
              1: `爱|ài|يحب|love|八|bā|ثمانية|eight|爸爸|bà ba|أبي|dad|杯子|bēi zi|كوب|cup|北京|běi jīng|بكين|Beijing|本|běn|كتاب/أصل|book/origin|不客气|bú kè qi|على الرحب|you're welcome|不|bù|لا|no/not|菜|cài|خضار/طبق|vegetable/dish|茶|chá|شاي|tea|吃|chī|يأكل|eat|出租车|chū zū chē|تاكي|taxi|打电话|dǎ diàn huà|يتصل هاتفياً|make a call|大|dà|كبير|big|的|de|أداة إضافة|possessive|点|diǎn|نقطة/ساعة|o'clock/point|电脑|diàn nǎo|كمبيوتر|computer|电视|diàn shì|تلفاز|TV|电影|diàn yǐng|فيلم|movie|东西|dōng xi|شيء|thing|都|dōu|كل/جميع|all/both|读|dú|يقرأ|read|对不起|duì bu qǐ|آسف|sorry|多|duō|كثير|many/much|多少|duō shǎo|كم|how many|儿子|ér zi|ابن|son|二|èr|اثنان|two|饭店|fàn diàn|مطعم|restaurant|飞机|fēi jī|طائرة|airplane|分钟|fēn zhōng|دقيقة|minute|高兴|gāo xìng|سعيد|happy|个|gè|أداة تعداد|measure word|工作|gōng zuò|عمل|work/job|狗|gǒu|كلب|dog|汉语|hàn yǔ|الصينية|Chinese language|好|hǎo|جيد|good|号|hào|رقم/يوم|number/day|喝|hē|يشرب|drink|和|hé|و|and|很|hěn|جداً|very|后面|hòu miàn|خلف|behind|回|huí|يعود|return|会|huì|يستطيع|can/will|几|jǐ|كم|how many|家|jiā|منزل/عائلة|home/family|叫|jiào|يسمى|be called|今天|jīn tiān|اليوم|today|九|jiǔ|تسعة|nine|开|kāi|يفتح|open|看|kàn|ينظر/يقرأ|look/read|看见|kàn jiàn|يرى|see|块|kuài|يوان/قطعة|yuan/piece|来|lái|يأتي|come|老师|lǎo shī|معلم|teacher|了|le|أداة الماضي|past tense|冷|lěng|بارد|cold|里|lǐ|داخل|inside|六|liù|ستة|six|吗|ma|أداة استفهام|question particle|妈妈|mā ma|أمي|mom|买|mǎi|يشتري|buy|猫|māo|قطة|cat|没关系|méi guān xi|لا بأس|it's okay|没有|méi yǒu|ليس لديه|don't have|米饭|mǐ fàn|أرز|rice|名字|míng zi|اسم|name|明天|míng tiān|غداً|tomorrow|哪|nǎ|أي|which|哪儿|nǎ er|أين|where|那|nà|ذلك|that|呢|ne|أداة استفهام|question particle|能|néng|يستطيع|can|你|nǐ|أنت|you|年|nián|سنة|year|女儿|nǚ ér|ابنة|daughter|朋友|péng you|صديق|friend|漂亮|piào liang|جميل|beautiful|苹果|píng guǒ|تفاح|apple|七|qī|سبعة|seven|前面|qián miàn|أمام|front|钱|qián|مال|money|请|qǐng|من فضلك|please|去|qù|يذهب|go|热|rè|حار|hot|人|rén|شخص|person|认识|rèn shi|يعرف|know|三|sān|ثلاثة|three|商店|shāng diàn|متجر|shop|上|shàng|فوق|up/above|上午|shàng wǔ|صباح|morning|少|shǎo|قليل|few/little|谁|shéi|من|who|什么|shén me|ماذا|what|十|shí|عشرة|ten|时候|shí hou|وقت|time|是|shì|يكون|is/am/are|书|shū|كتاب|book|水|shuǐ|ماء|water|水果|shuǐ guǒ|فاكهة|fruit|睡觉|shuì jiào|ينام|sleep|说|shuō|يقول|speak|四|sì|أربعة|four|岁|suì|سنة (عمر)|years old|他|tā|هو|he|她|tā|هي|she|太|tài|جداً/كثيراً|too/very|天气|tiān qì|طقس|weather|听|tīng|يسمع|listen|同学|tóng xué|زميل دراسة|classmate|喂|wèi|مرحباً (هاتف)|hello (phone)|我|wǒ|أنا|I/me|我们|wǒ men|نحن|we/us|五|wǔ|خمسة|five|喜欢|xǐ huan|يحب|like|下|xià|تحت|down/below|下午|xià wǔ|مساء|afternoon|下雨|xià yǔ|يمطر|rain|先生|xiān sheng|سيد|Mr./sir|现在|xiàn zài|الآن|now|想|xiǎng|يفكر/يريد|think/want|小|xiǎo|صغير|small|小姐|xiǎo jie|آنسة|Miss|些|xiē|بعض|some|写|xiě|يكتب|write|谢谢|xiè xie|شكراً|thanks|星期|xīng qī|أسبوع|week|学生|xué sheng|طالب|student|学习|xué xí|يتعلم|study|学校|xué xiào|مدرسة|school|一|yī|واحد|one|一点儿|yī diǎn er|قليلاً|a little|医生|yī shēng|طبيب|doctor|医院|yī yuàn|مستشفى|hospital|衣服|yī fu|ملابس|clothes|椅子|yǐ zi|كرسي|chair|有|yǒu|لديه|have|月|yuè|شهر|month|再见|zài jiàn|مع السلامة|goodbye|在|zài|في|at/in|怎么|zěn me|كيف|how|怎么样|zěn me yàng|كيف الحال|how is it|这|zhè|هذا|this|中国|zhōng guó|الصين|China|中午|zhōng wǔ|ظهيرة|noon|住|zhù|يسكن|live/reside|桌子|zhuō zi|طاولة|table|字|zì|حرف|character|昨天|zuó tiān|أمس|yesterday|做|zuò|يعمل|do/make|坐|zuò|يجلس|sit`,
-             // ... Add HSK 2, 3, 4, 5, 6 data here as per previous code ...
              2: `...`, 3: `...`, 4: `...`, 5: `...`, 6: `...` 
         };
 
