@@ -58,6 +58,19 @@
             <input type="password" id="loginPassword" class="login-input" placeholder="كلمة المرور">
             <button class="btn btn-primary" style="width:100%; margin-top:15px;" onclick="login()">دخول</button>
             <p style="margin-top:15px; cursor:pointer; color:var(--primary-red);" onclick="showForgotPassword()">نسيت كلمة المرور؟</p>
+            <p style="margin-top:10px; font-size:0.9rem;">ليس لديك حساب؟ <a href="#" onclick="showCreateAccount()" style="color:var(--primary-red);">إنشاء حساب جديد</a></p>
+        </div>
+    </div>
+
+    <!-- Create Account Modal -->
+    <div id="createModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>إنشاء حساب جديد</h3>
+            <input type="text" id="createName" class="login-input" placeholder="الاسم الكامل">
+            <input type="email" id="createEmail" class="login-input" placeholder="البريد الإلكتروني">
+            <input type="password" id="createPass" class="login-input" placeholder="كلمة المرور">
+            <button class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="createAccount()">إنشاء</button>
+            <button class="btn btn-primary" style="background:#ccc; margin-top:10px; width:100%;" onclick="closeCreateModal()">إغلاق</button>
         </div>
     </div>
 
@@ -136,6 +149,22 @@
                 document.getElementById('mainApp').style.display = 'flex';
                 loadVocab(1);
             }).catch(err => alert("خطأ: " + err.message));
+        }
+
+        function showCreateAccount() { document.getElementById('createModal').style.display = 'flex'; }
+        function closeCreateModal() { document.getElementById('createModal').style.display = 'none'; }
+
+        function createAccount() {
+            const name = document.getElementById('createName').value;
+            const email = document.getElementById('createEmail').value;
+            const pass = document.getElementById('createPass').value;
+            
+            if(!name || !email || !pass) { alert("املأ جميع الحقول"); return; }
+            
+            auth.createUserWithEmailAndPassword(email, pass).then(() => {
+                alert("تم إنشاء الحساب بنجاح!");
+                closeCreateModal();
+            }).catch(err => alert(err.message));
         }
 
         function showForgotPassword() { 
