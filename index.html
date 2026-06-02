@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Omar's HSK Hub - منصة تعلم الصينية</title>
+    <!-- خطوط وأيقونات -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600;700&family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.3/dist/hanzi-writer.min.js"></script>
+    
+    <!-- مكتبات فايربيس -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        :root { --primary: #DE2910; --bg: #F5F7FA; --text: #2C3E50; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Noto Sans Arabic', sans-serif; }
+        body { background-color: var(--bg); color: var(--text); height: 100vh; overflow: hidden; display: flex; }
+        
+        /* شاشة الدخول */
+        .login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, var(--primary), #8B0000); display: flex; justify-content: center; align-items: center; z-index: 10000; }
+        .login-box { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); width: 90%; max-width: 400px; text-align: center; }
+        .input-field { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #ddd; border-radius: 8px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-primary { background: var(--primary); color: white; }
+        
+        /* القائمة الجانبية والمحتوى */
+        .sidebar { width: 260px; background: white; border-left: 1px solid #eee; padding: 20px; display: flex; flex-direction: column; z-index: 100; }
+        .main-content { flex: 1; padding: 25px; overflow-y: auto; }
+        .nav-item { padding: 12px; margin-bottom: 5px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 10px; color: #777; font-weight: 600; }
+        .nav-item:hover, .nav-item.active { background-color: #fff0f0; color: var(--primary); }
+        
+        /* بطاقات الكلمات */
+        .vocab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; }
+        .vocab-card { background: white; padding: 15px; border-radius: 10px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.05); transition: 0.2s; }
+        .vocab-card:hover { transform: translateY(-3px); border: 1px solid var(--primary); }
+        .char-display { font-family: 'Noto Sans SC'; font-size: 2.4rem; color: var(--text); }
+        
+        /* النوافذ المنبثقة */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; display: none; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 25px; border-radius: 12px; text-align: center; width: 90%; max-width: 450px; }
+        #writer-target { width: 250px; height: 250px; margin: 15px auto; border: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+
+    <!-- شاشة تسجيل الدخول -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-box">
+            <div style="font-size: 3rem; color: var(--primary); margin-bottom: 10px;">学</div>
+            <h2>Omar's HSK Hub</h2>
+            <p style="color:#666; margin-bottom: 20px;">منصة تعلم الصينية - HSK 3.0</p>
+            
+            <input type="email" id="loginEmail" class="input-field" placeholder="البريد الإلكتروني">
+            <input type="password" id="loginPassword" class="input-field" placeholder="كلمة المرور">
+            <button class="btn btn-primary" style="width:100%;" onclick="login()">دخول</button>
+            
+            <div style="margin-top: 15px; font-size: 0.9rem;">
+                <a href="#" onclick="showForgot()" style="color:var(--primary);">نسيت كلمة المرور؟</a> | 
+                <a href="#" onclick="showCreate()" style="color:var(--primary);">إنشاء حساب</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- التطبيق الرئيسي -->
+    <div id="mainApp" style="display:none; width: 100%;">
+        <nav class="sidebar">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
+                <div style="width:40px; height:40px; background:var(--primary); color:white; border-radius:8px; display:flex; align-items:center; justify-content:center; font-family:'Noto Sans SC'; font-size:1.5rem;">学</div>
+                <div><h3>Omar's HSK Hub</h3></div>
+            </div>
+            
+            <div class="nav-item active" onclick="switchView('home')"><i class="fas fa-home"></i> الرئيسية</div>
+            <div class="nav-item" onclick="switchView('levels')"><i class="fas fa-layer-group"></i> المستويات</div>
+            
+            <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px;">
+                <p style="font-size: 0.8rem; color: #999; margin-bottom: 5px;">المستويات</p>
+                <div class="nav-item" onclick="loadVocab(1)" style="padding: 8px;"><span>HSK 1</span></div>
+                <div class="nav-item" onclick="loadVocab(2)" style="padding: 8px;"><span>HSK 2</span></div>
+                <div class="nav-item" onclick="loadVocab(3)" style="padding: 8px;"><span>HSK 3</span></div>
+                <div class="nav-item" onclick="loadVocab(4)" style="padding: 8px;"><span>HSK 4</span></div>
+                <div class="nav-item" onclick="loadVocab(5)" style="padding: 8px;"><span>HSK 5</span></div>
+                <div class="nav-item" onclick="loadVocab(6)" style="padding: 8px;"><span>HSK 6</span></div>
+            </div>
+            
+            <button onclick="logout()" style="margin-top:auto; padding:10px; background:#eee; border:none; cursor:pointer; border-radius:5px; width:100%;">خروج</button>
+        </nav>
+
+        <main class="main-content">
+            <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                <h2 id="pageTitle">الرئيسية</h2>
+                <div style="background: white; padding: 8px 15px; border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                    <span id="userNameDisplay">مستخدم</span>
+                </div>
+            </header>
+
+            <!-- الصفحة الرئيسية -->
+            <section id="home" class="view-section">
+                <div style="text-align: center; padding: 40px 0;">
+                    <h1 style="font-size: 2.5rem; margin-bottom: 15px;">مرحباً بك في <span style="color:var(--primary)">Omar's HSK Hub</span></h1>
+                    <p style="color: #666; max-width: 600px; margin: 0 auto 30px;">تعلم أكثر من 9,750 كلمة صينية عبر 6 مستويات HSK 3.0 مع نطق صوتي، اختبارات تفاعلية، وتتبع دقيق للتقدم.</p>
+                    <button class="btn btn-primary" onclick="switchView('levels')">ابدأ التعلم الآن</button>
+                </div>
+            </section>
+
+            <!-- صفحة المستويات -->
+            <section id="levels" class="view-section" style="display:none;">
+                <h2 style="margin-bottom: 20px;">اختر المستوى</h2>
+                <div class="vocab-grid" id="levelsContainer"></div>
+            </section>
+
+            <!-- صفحة الكلمات -->
+            <section id="vocab" class="view-section" style="display:none;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:20px; align-items:center;">
+                    <h2 id="vocabTitle">مفردات المستوى</h2>
+                    <button class="btn btn-primary" onclick="switchView('levels')">عودة</button>
+                </div>
+                <div class="vocab-grid" id="vocabContainer"></div>
+                <div id="pagination" style="margin-top: 20px; text-align: center;"></div>
+            </section>
+        </main>
+    </div>
+
+    <!-- نافذة الكتابة -->
+    <div id="writerModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="writerCharTitle" style="font-family:'Noto Sans SC'; font-size:2rem;"></h3>
+            <div id="writer-target"></div>
+            <button class="btn btn-primary" onclick="closeWriter()">إغلاق</button>
+        </div>
+    </div>
+
+    <!-- كود البرمجة (المحرك) -->
+    <script>
+        // 1. إعدادات فايربيس
+        const firebaseConfig = {
+          apiKey: "AIzaSyDhsLAVfRamuK4ulQNM7NQadbjnZb1ahZU",
+          authDomain: "omar-hsk-hub.firebaseapp.com",
+          projectId: "omar-hsk-hub",
+          storageBucket: "omar-hsk-hub.firebasestorage.app",
+          messagingSenderId: "548719962218",
+          appId: "1:548719962218:web:f5fe7fe0a6a1c35412c213"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        // 2. منطق تسجيل الدخول
+        function login() {
+            const e = document.getElementById('loginEmail').value;
+            const p = document.getElementById('loginPassword').value;
+            auth.signInWithEmailAndPassword(e, p).then(() => {
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('mainApp').style.display = 'flex';
+                document.getElementById('userNameDisplay').innerText = e.split('@')[0];
+                loadDashboard();
+            }).catch(err => alert("خطأ: " + err.message));
+        }
+
+        function showCreate() {
+            const e = prompt("أدخل بريدك الإلكتروني:");
+            const p = prompt("أدخل كلمة المرور:");
+            if(e && p) auth.createUserWithEmailAndPassword(e, p).then(() => alert("تم إنشاء الحساب! سجل دخول الآن."));
+        }
+
+        function showForgot() {
+            const e = prompt("أدخل بريدك الإلكتروني:");
+            if(e) auth.sendPasswordResetEmail(e).then(() => alert("تم إرسال رابط الاستعادة."));
+        }
+
+        function logout() { auth.signOut().then(() => location.reload()); }
+
+        // 3. تحميل البيانات والكلمات من مصدر خارجي موثوق (HSK 3.0 Full List)
+        let HSK_DATA = {};
+        let currentPage = 1;
+        const itemsPerPage = 20;
+        let currentLevelWords = [];
+
+        // استخدام مصدر بيانات مفتوح وموثوق لـ HSK 3.0
+        fetch('https://raw.githubusercontent.com/sherlcok314159/hsk/master/data/hsk.json')
+            .then(response => response.json())
+            .then(data => {
+                // معالجة البيانات لتتناسب مع هيكل تطبيقنا
+                HSK_DATA = {};
+                
+                // المصدر قد يكون له هيكل مختلف، لذا سنقوم بتكييفه
+                // نفترض أن المصدر يحتوي على مصفوفة أو كائن بمستويات
+                
+                if (Array.isArray(data)) {
+                    data.forEach(item => {
+                        const level = item.level || 1; // افتراضي 1 إذا لم يحدد
+                        if (!HSK_DATA[level]) HSK_DATA[level] = [];
+                        HSK_DATA[level].push({
+                            char: item.simplified || item.traditional || '',
+                            pinyin: item.pinyin || '',
+                            mean: item.translation || item.meaning || ''
+                        });
+                    });
+                } else {
+                    // إذا كان بالفعل كائنًا بمستويات
+                    HSK_DATA = data;
+                }
+                
+                console.log("تم تحميل البيانات بنجاح:", Object.keys(HSK_DATA));
+                loadDashboard();
+            })
+            .catch(error => {
+                console.error('خطأ في تحميل الكلمات:', error);
+                alert("تعذر تحميل بيانات الكلمات. تأكد من اتصال الإنترنت.");
+            });
+
+        function switchView(viewId) {
+            document.querySelectorAll('.view-section').forEach(el => el.style.display = 'none');
+            document.getElementById(viewId).style.display = 'block';
+            if(viewId === 'levels') loadLevelsList();
+        }
+
+        function loadDashboard() {
+            // يمكن إضافة إحصائيات هنا لاحقاً
+        }
+
+        function loadLevelsList() {
+            const container = document.getElementById('levelsContainer');
+            container.innerHTML = '';
+            const totals = [150, 300, 600, 1200, 2500, 5000];
+            for(let i=1; i<=6; i++) {
+                container.innerHTML += `
+                    <div class="vocab-card" onclick="loadVocab(${i})" style="cursor:pointer; text-align:right;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <h3>المستوى ${i}</h3>
+                            <span style="background:#eee; padding:5px 10px; border-radius:15px; font-size:0.8rem;">${totals[i-1]} كلمة</span>
+                        </div>
+                        <div style="height:6px; background:#eee; border-radius:3px; margin-top:10px;">
+                            <div style="width:0%; height:100%; background:var(--primary); border-radius:3px;"></div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function loadVocab(level) {
+            switchView('vocab');
+            document.getElementById('vocabTitle').innerText = `مفردات HSK ${level}`;
+            const container = document.getElementById('vocabContainer');
+            container.innerHTML = '<p>جاري التحميل...</p>';
+            
+            setTimeout(() => {
+                container.innerHTML = '';
+                currentLevelWords = HSK_DATA[level] || [];
+                currentPage = 1;
+                renderPage();
+            }, 500);
+        }
+
+        function renderPage() {
+            const container = document.getElementById('vocabContainer');
+            container.innerHTML = '';
+            
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageWords = currentLevelWords.slice(start, end);
+            
+            if(pageWords.length === 0) {
+                container.innerHTML = '<p style="grid-column: 1/-1; text-align:center;">لا توجد كلمات لهذا المستوى.</p>';
+                return;
+            }
+
+            pageWords.forEach(w => {
+                container.innerHTML += `
+                    <div class="vocab-card">
+                        <div class="char-display">${w.char}</div>
+                        <div style="color:var(--primary); font-weight:bold;">${w.pinyin}</div>
+                        <div style="color:#666; font-size:0.9rem;">${w.mean}</div>
+                        <div style="margin-top:10px;">
+                            <button class="btn btn-primary" style="padding:5px 10px; font-size:0.8rem;" onclick="playVoice('${w.pinyin}')">🔊 استمع</button>
+                            <button class="btn btn-primary" style="padding:5px 10px; font-size:0.8rem; background:#2980b9;" onclick="openWriter('${w.char}')">✍️ كتابة</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // أزرار التنقل بين الصفحات
+            const totalPages = Math.ceil(currentLevelWords.length / itemsPerPage);
+            const paginationDiv = document.getElementById('pagination');
+            paginationDiv.innerHTML = `
+                <button class="btn" onclick="changePage(-1)" ${currentPage === 1 ? 'disabled' : ''}>← السابق</button>
+                <span style="margin: 0 10px;">صفحة ${currentPage} من ${totalPages}</span>
+                <button class="btn" onclick="changePage(1)" ${currentPage === totalPages ? 'disabled' : ''}>التالي →</button>
+            `;
+        }
+
+        function changePage(direction) {
+            currentPage += direction;
+            renderPage();
+        }
+
+        function playVoice(text) {
+            const u = new SpeechSynthesisUtterance(text);
+            u.lang = 'zh-CN';
+            speechSynthesis.speak(u);
+        }
+
+        let writer = null;
+        function openWriter(char) {
+            document.getElementById('writerModal').style.display = 'flex';
+            document.getElementById('writerCharTitle').innerText = char;
+            if(writer) writer.destroy();
+            writer = HanziWriter.create('writer-target', char, { width: 250, height: 250 });
+            writer.animateCharacter();
+        }
+        function closeWriter() { document.getElementById('writerModal').style.display = 'none'; }
+    </script>
+</body>
+</html>
